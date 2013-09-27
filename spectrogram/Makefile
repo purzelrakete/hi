@@ -6,6 +6,9 @@ build:
 test: build
 	go test -v
 
+render: test
+	open spectrogram.png
+
 deps:
 	go get -v
 

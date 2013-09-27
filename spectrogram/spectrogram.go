@@ -9,22 +9,19 @@ import (
 	"io"
 )
 
-// Spectrogram of audio content
-type Spectrogram [][]complex128
-
-// MakeSpectrogram returns a spectrogram of the audio file
-func MakeSpectrogram(r io.Reader) (Spectrogram, error) {
+// Spectrogram of an audio file
+func Spectrogram(r io.Reader, windowLen, overlap int) ([][]complex128, error) {
 	data, err := wav.ReadWav(r)
 	if err != nil {
-		return Spectrogram{}, err
+		return [][]complex128{}, err
 	}
 
 	if expected, actual := uint16(16), data.BitsPerSample; expected != actual {
-		return Spectrogram{}, fmt.Errorf("bitrate %d, not %d", actual, expected)
+		return [][]complex128{}, fmt.Errorf("rate %d, not %d", actual, expected)
 	}
 
 	if expected, actual := uint16(1), data.NumChannels; expected != actual {
-		return Spectrogram{}, fmt.Errorf("%d channels, not %d", actual, expected)
+		return [][]complex128{}, fmt.Errorf("%d chans, not %d", actual, expected)
 	}
 
 	sampleData := make([]float64, len(data.Data16[0]))
@@ -32,9 +29,7 @@ func MakeSpectrogram(r io.Reader) (Spectrogram, error) {
 		sampleData[i] = float64(s)
 	}
 
-	sampleLen, windowLen, overlap := len(data.Data16[0]), 256, 10
-	hamming := window.Hamming(sampleLen)
-
+	hamming := window.Hamming(len(data.Data16[0]))
 	windows := spectral.Segment(sampleData, windowLen, overlap)
 	for i, w := range windows {
 		for j, _ := range w {
