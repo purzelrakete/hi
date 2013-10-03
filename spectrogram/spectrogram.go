@@ -7,21 +7,25 @@ import (
 	"github.com/mjibson/go-dsp/wav"
 	"github.com/mjibson/go-dsp/window"
 	"io"
+	"math/cmplx"
 )
 
 // Spectrogram of an audio file
-func Spectrogram(r io.Reader, windowLen, overlap int) ([][]complex128, error) {
+type Spectrogram [][]uint8
+
+// NewSpectrogram constructs a spectrogram
+func NewSpectrogram(r io.Reader, windowLen, overlap int) (*Spectrogram, error) {
 	data, err := wav.ReadWav(r)
 	if err != nil {
-		return [][]complex128{}, err
+		return &Spectrogram{}, err
 	}
 
 	if expected, actual := uint16(16), data.BitsPerSample; expected != actual {
-		return [][]complex128{}, fmt.Errorf("rate %d, not %d", actual, expected)
+		return &Spectrogram{}, fmt.Errorf("rate %d, not %d", actual, expected)
 	}
 
 	if expected, actual := uint16(1), data.NumChannels; expected != actual {
-		return [][]complex128{}, fmt.Errorf("%d chans, not %d", actual, expected)
+		return &Spectrogram{}, fmt.Errorf("%d chans, not %d", actual, expected)
 	}
 
 	sampleData := make([]float64, len(data.Data16[0]))
@@ -37,5 +41,29 @@ func Spectrogram(r io.Reader, windowLen, overlap int) ([][]complex128, error) {
 		}
 	}
 
-	return fft.FFT2Real(windows), nil
+	t := fft.FFT2Real(windows)
+
+	max := 0.0
+	for y := range t {
+		for x := range t[y] {
+			point := t[y][x]
+			if cmplx.Abs(point) > max {
+				max = cmplx.Abs(point)
+			}
+		}
+	}
+
+	// normalized by max, unit8
+	s := make(Spectrogram, len(t))
+	for y := range t {
+		s[y] = make([]uint8, len(t[y]))
+		for x := range t[y] {
+			s[y][x] = uint8(255 * cmplx.Abs(t[y][x]) / max)
+		}
+	}
+
+	return &s, nil
 }
+
+func (s *Spectrogram) Height() int { return len(*s) }
+func (s *Spectrogram) Width() int  { return len((*s)[0]) }

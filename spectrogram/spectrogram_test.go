@@ -12,12 +12,12 @@ func TestDrawSpectrogram(t *testing.T) {
 	}
 
 	windowLen, overlap := 256, 128
-	s, err := Spectrogram(file, windowLen, overlap)
+	s, err := NewSpectrogram(file, windowLen, overlap)
 	if err != nil {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
 
-	Draw(s, windowLen, "spectrogram.png")
+	Draw(s, "spectrogram.png")
 
-	// TODO: think of a reasonable assertion.
+	// TODO: add a reasonable assertion.
 }

@@ -2,35 +2,18 @@ package spectrogram
 
 import (
 	"bytes"
-	"fmt"
 	"image"
 	"image/color"
 	"image/png"
-	"math/cmplx"
 	"os"
 )
 
-// Draw a spectrogram and save to filename
-func Draw(spectrogram [][]complex128, width int, filename string) error {
-	height := len(spectrogram)
-	max := 0.0
-	for y := 0; y < width; y++ {
-		for x := 0; x < height; x++ {
-			pixel := spectrogram[x][y]
-			if cmplx.Abs(pixel) > max {
-				max = cmplx.Abs(pixel)
-			}
-		}
-	}
-
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for y := 0; y < width; y++ {
-		for x := 0; x < height; x++ {
-			intensity := uint8(255 * cmplx.Abs(spectrogram[x][y]) / max)
-			if y == 600 {
-				fmt.Println(intensity)
-			}
-			img.Set(x, y, color.RGBA{0, 0, 255, intensity})
+// Draw spectrogram and save to filename
+func Draw(s *Spectrogram, filename string) error {
+	img := image.NewRGBA(image.Rect(0, 0, s.Width(), s.Height()))
+	for y := range *s {
+		for x := range (*s)[y] {
+			img.Set(x, y, color.RGBA{0, 0, 255, (*s)[y][x]})
 		}
 	}
 
