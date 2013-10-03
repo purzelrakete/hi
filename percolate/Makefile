@@ -1,13 +1,15 @@
-.PHONY: build render test clean
+.PHONY: build render test clean deps
 
-build:
+build: deps
 	go build -v
 
 render: build
 	percolate && open material.png
 
-test:
-	go build -v
+deps:
+	go get -v
+
+test: build
 	go test -v
 
 clean:

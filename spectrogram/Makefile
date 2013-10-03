@@ -1,6 +1,6 @@
 .PHONY: build render test clean
 
-build:
+build: deps
 	go build -v
 
 test: build
