@@ -3,9 +3,7 @@ package spectrogram
 import (
 	"fmt"
 	"github.com/mjibson/go-dsp/fft"
-	"github.com/mjibson/go-dsp/spectral"
 	"github.com/mjibson/go-dsp/wav"
-	"github.com/mjibson/go-dsp/window"
 	"io"
 	"math/cmplx"
 )
@@ -33,27 +31,27 @@ func NewSpectrogram(r io.Reader, windowLen, overlap int) (*Spectrogram, error) {
 		sampleData[i] = float64(s)
 	}
 
-	hamming := window.Hamming(len(data.Data16[0]))
-	windows := spectral.Segment(sampleData, windowLen, overlap)
-	for i, w := range windows {
-		for j, _ := range w {
-			windows[i][j] = windows[i][j] * hamming[j]
-		}
-	}
+	// create hammed windows for the fft
+	windows := SegmentColumns(sampleData, windowLen, overlap)
+	ApplyHammingColumns(windows)
 
+	// doit
 	t := fft.FFT2Real(windows)
 
+	// discard above the nyquist frequency
+
+	// find maximum energy
 	max := 0.0
 	for y := range t {
 		for x := range t[y] {
-			point := t[y][x]
-			if cmplx.Abs(point) > max {
-				max = cmplx.Abs(point)
+			point := cmplx.Abs(t[y][x]) // discard phase
+			if point > max {
+				max = point
 			}
 		}
 	}
 
-	// normalized by max, unit8
+	// normalized by max, convert to unit8, transpose
 	s := make(Spectrogram, len(t))
 	for y := range t {
 		s[y] = make([]uint8, len(t[y]))

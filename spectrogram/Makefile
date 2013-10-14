@@ -14,3 +14,4 @@ deps:
 
 clean:
 	go clean
+	rm spectrogram.png
