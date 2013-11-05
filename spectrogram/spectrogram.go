@@ -38,15 +38,16 @@ func NewSpectrogram(r io.Reader, windowLen, overlap int) (*Spectrogram, error) {
 	// doit
 	t := fft.FFT2Real(windows)
 
-	// discard above the nyquist frequency
+	// get the positive fq components
+	t = t[int(windowLen/2):windowLen]
 
 	// find maximum energy
 	max := 0.0
 	for y := range t {
-		for x := range t[y] {
-			point := cmplx.Abs(t[y][x]) // discard phase
-			if point > max {
-				max = point
+		for _, point := range t[y] {
+			amplitude := cmplx.Abs(point) // discard phase
+			if amplitude > max {
+				max = amplitude
 			}
 		}
 	}

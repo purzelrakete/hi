@@ -79,3 +79,8 @@ func TestApplyHamming(t *testing.T) {
 		t.Fatalf("expected %v but got %v", expected, windows)
 	}
 }
+
+// FIXME(rk): this is a temporary test; remove.
+func TestOctaveRendering(ts *testing.T) {
+	drawMatrix("octave.csv", "octave.png")
+}
