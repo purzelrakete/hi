@@ -45,3 +45,10 @@ func NewDictionary(r io.Reader) (Dictionary, error) {
 
 	return dict, nil
 }
+
+// CosineSimilarity returns terms within threshold distance of the given term.
+func (d *Dictionary) CosineSimilarity(term string, threshold float32) []string {
+	return []string{
+		term,
+	}
+}
