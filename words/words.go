@@ -2,6 +2,7 @@ package words
 
 import (
 	"bufio"
+	"container/heap"
 	"fmt"
 	"io"
 	"strconv"
@@ -46,9 +47,50 @@ func NewDictionary(r io.Reader) (Dictionary, error) {
 	return dict, nil
 }
 
-// CosineSimilarity returns terms within threshold distance of the given term.
-func (d *Dictionary) CosineSimilarity(term string, threshold float64) []string {
-	return []string{
-		term,
+// NearestNeighbours returns k nearest tags in vector space.
+func (d *Dictionary) NearestNeighbours(term string, k int) ([]string, error) {
+	termVector, ok := (*d)[term]
+	if !ok {
+		return []string{}, fmt.Errorf("%s not in dictionary", term)
 	}
+
+	pq := &PriorityQueue{}
+	heap.Init(pq)
+	for t, v := range *d {
+		if term == t {
+			continue
+		}
+
+		similarity, err := cosine(termVector, v)
+		if err != nil {
+			return []string{}, fmt.Errorf("could not compare %s with %s", term, t)
+		}
+
+		// fill the queue up with the first K candidates
+		if pq.Len() < k {
+			heap.Push(pq, &Item{
+				value:    t,
+				priority: similarity,
+			})
+
+			// check candidate proximity
+		} else {
+			if similarity > (*pq)[pq.Len()-1].priority {
+				heap.Pop(pq)
+				heap.Push(pq, &Item{
+					value:    t,
+					priority: similarity,
+				})
+			}
+		}
+	}
+
+	// FIXME(rk): will always return k-1, since self simiarity is 1.0.
+	terms := []string{}
+	for pq.Len() > 0 {
+		item := heap.Pop(pq).(*Item)
+		terms = append(terms, item.value)
+	}
+
+	return terms, nil
 }

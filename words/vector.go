@@ -18,5 +18,10 @@ func cosine(v1, v2 []float64) (float64, error) {
 		sum2 += v2[i] * v2[i]
 	}
 
-	return dot / math.Sqrt(sum1*sum2), nil
+	similarity := dot / math.Sqrt(sum1*sum2)
+	if math.IsNaN(similarity) {
+		return 0, fmt.Errorf("NaN")
+	}
+
+	return similarity, nil
 }
