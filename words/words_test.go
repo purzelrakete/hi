@@ -1,4 +1,4 @@
-package wordvectors
+package words
 
 import (
 	"reflect"

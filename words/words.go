@@ -1,4 +1,4 @@
-package wordvectors
+package words
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 )
 
 // Dictionary contains a word vector definition for each included term.
-type Dictionary map[string][]float32
+type Dictionary map[string][]float64
 
 // NewDictionary creates a dictionary given a word vector file.
 func NewDictionary(r io.Reader) (Dictionary, error) {
@@ -30,14 +30,14 @@ func NewDictionary(r io.Reader) (Dictionary, error) {
 	dict := Dictionary{}
 	for lines.Scan() {
 		fields := strings.Fields(lines.Text())
-		vector := make([]float32, dims)
+		vector := make([]float64, dims)
 		for i := 1; i <= dims; i++ {
-			weight, err := strconv.ParseFloat(fields[i], 32)
+			weight, err := strconv.ParseFloat(fields[i], 64)
 			if err != nil {
 				return Dictionary{}, fmt.Errorf("could not parse weight: %s", fields[i])
 			}
 
-			vector[i-1] = float32(weight)
+			vector[i-1] = float64(weight)
 		}
 
 		dict[fields[0]] = vector
@@ -47,7 +47,7 @@ func NewDictionary(r io.Reader) (Dictionary, error) {
 }
 
 // CosineSimilarity returns terms within threshold distance of the given term.
-func (d *Dictionary) CosineSimilarity(term string, threshold float32) []string {
+func (d *Dictionary) CosineSimilarity(term string, threshold float64) []string {
 	return []string{
 		term,
 	}
