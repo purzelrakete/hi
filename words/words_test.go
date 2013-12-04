@@ -1,6 +1,7 @@
 package words
 
 import (
+	"bufio"
 	"reflect"
 	"strings"
 	"testing"
@@ -12,7 +13,7 @@ func TestNewDictionary(t *testing.T) {
 		"dubstep -0.001058 0.002683 0.000132 0.001072",
 	}
 
-	r := strings.NewReader(strings.Join(vectors, "\n"))
+	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
 	d, err := NewDictionary(r)
 	if err != nil {
 		t.Fatalf("could not load dictionary: %s", err.Error())

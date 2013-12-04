@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"container/heap"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 )
@@ -13,7 +12,7 @@ import (
 type Dictionary map[string][]float64
 
 // NewDictionary creates a dictionary given a word vector file.
-func NewDictionary(r io.Reader) (Dictionary, error) {
+func NewDictionary(r *bufio.Reader) (Dictionary, error) {
 	lines := bufio.NewScanner(r)
 
 	// first line is dictionary size, vector dimensions
