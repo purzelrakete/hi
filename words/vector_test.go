@@ -22,4 +22,14 @@ func TestCosine(t *testing.T) {
 	if expected := 0.2672612419124244; expected != actual {
 		t.Fatalf("expected %f but got %f distance", expected, actual)
 	}
+
+	actual, err = cosine([]float64{0.0, 1.0}, []float64{1.0, 0.0})
+	if err != nil {
+		t.Fatalf("failed to get cosine: %s", err.Error())
+	}
+
+	// orthogonal vectors should have 0 similarity
+	if expected := 0.0; expected != actual {
+		t.Fatalf("expected %f but got %f distance", expected, actual)
+	}
 }
