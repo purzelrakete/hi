@@ -9,7 +9,7 @@ import (
 )
 
 // Dictionary contains a word vector definition for each included term.
-type Dictionary map[string][]float64
+type Dictionary map[string][]float32
 
 // NewDictionary creates a dictionary given a word vector file.
 func NewDictionary(r *bufio.Reader) (Dictionary, error) {
@@ -30,14 +30,14 @@ func NewDictionary(r *bufio.Reader) (Dictionary, error) {
 	dict := Dictionary{}
 	for lines.Scan() {
 		fields := strings.Fields(lines.Text())
-		vector := make([]float64, dims)
+		vector := make([]float32, dims)
 		for i := 1; i <= dims; i++ {
-			weight, err := strconv.ParseFloat(fields[i], 64)
+			weight, err := strconv.ParseFloat(fields[i], 32)
 			if err != nil {
 				return Dictionary{}, fmt.Errorf("could not parse weight: %s", fields[i])
 			}
 
-			vector[i-1] = float64(weight)
+			vector[i-1] = float32(weight)
 		}
 
 		dict[fields[0]] = vector

@@ -29,7 +29,7 @@ func TestNewDictionary(t *testing.T) {
 		t.Fatalf("could not find dubstep in dictionary")
 	}
 
-	expectedVector := []float64{-0.001058, 0.002683, 0.000132, 0.001072}
+	expectedVector := []float32{-0.001058, 0.002683, 0.000132, 0.001072}
 	if !reflect.DeepEqual(expectedVector, actual) {
 		t.Fatalf("expected %v but got %v", expectedVector, actual)
 	}
@@ -37,10 +37,10 @@ func TestNewDictionary(t *testing.T) {
 
 func TestNearestNeighbours(t *testing.T) {
 	d := Dictionary{}
-	d["minimalhouse"] = []float64{1.0, 0.0}
-	d["opera"] = []float64{-1.0, 0.0}
-	d["house"] = []float64{1.0, 0.1}
-	d["classical"] = []float64{-1.0, 0.1}
+	d["minimalhouse"] = []float32{1.0, 0.0}
+	d["opera"] = []float32{-1.0, 0.0}
+	d["house"] = []float32{1.0, 0.1}
+	d["classical"] = []float32{-1.0, 0.1}
 
 	actual, err := d.NearestNeighbours("minimalhouse", 2)
 	if err != nil {
