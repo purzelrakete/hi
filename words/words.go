@@ -75,7 +75,7 @@ func (d *Dictionary) NearestNeighbours(term string, k int) ([]string, error) {
 
 			// check candidate proximity
 		} else {
-			if similarity > (*pq)[pq.Len()-1].priority {
+			if similarity > (*pq)[0].priority {
 				heap.Pop(pq)
 				heap.Push(pq, &Item{
 					value:    t,
@@ -85,11 +85,10 @@ func (d *Dictionary) NearestNeighbours(term string, k int) ([]string, error) {
 		}
 	}
 
-	// FIXME(rk): will always return k-1, since self simiarity is 1.0.
-	terms := []string{}
-	for pq.Len() > 0 {
+	terms := make([]string, k)
+	for i := 0; pq.Len() > 0; i++ {
 		item := heap.Pop(pq).(*Item)
-		terms = append(terms, item.value)
+		terms[k-i-1] = item.value
 	}
 
 	return terms, nil

@@ -36,16 +36,17 @@ func TestNewDictionary(t *testing.T) {
 
 func TestNearestNeighbours(t *testing.T) {
 	d := Dictionary{}
-	d["house"] = []float64{1.0, 0.0}
-	d["classical"] = []float64{-1.0, 0.0}
-	d["minimalhouse"] = []float64{1.0, 1.0}
+	d["minimalhouse"] = []float64{1.0, 0.0}
+	d["opera"] = []float64{-1.0, 0.0}
+	d["house"] = []float64{1.0, 0.1}
+	d["classical"] = []float64{-1.0, 0.1}
 
-	actual, err := d.NearestNeighbours("house", 1)
+	actual, err := d.NearestNeighbours("minimalhouse", 2)
 	if err != nil {
 		t.Fatalf("error calculating NearestNeighbours: %s", err.Error())
 	}
 
-	expected := []string{"minimalhouse"}
+	expected := []string{"house", "classical"}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("expected %v but got %v", expected, actual)
 	}
