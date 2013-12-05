@@ -7,25 +7,25 @@ import (
 	"testing"
 )
 
-func TestNewDictionary(t *testing.T) {
+func TestNewReaderDictionary(t *testing.T) {
 	vectors := []string{
 		"1 4",
 		"dubstep -0.001058 0.002683 0.000132 0.001072",
 	}
 
 	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
-	d, err := NewDictionary(r)
+	d, err := NewReaderDictionary(r)
 	if err != nil {
 		t.Fatalf("could not load dictionary: %s", err.Error())
 	}
 
 	expectedEntries := 1
-	if actual := len(d); expectedEntries != actual {
+	if actual := d.Len(); expectedEntries != actual {
 		t.Fatalf("expected %d but got %d", expectedEntries, actual)
 	}
 
-	actual, ok := d["dubstep"]
-	if !ok {
+	actual, err := d.Vector("dubstep")
+	if err != nil {
 		t.Fatalf("could not find dubstep in dictionary")
 	}
 
@@ -36,11 +36,19 @@ func TestNewDictionary(t *testing.T) {
 }
 
 func TestNearestNeighbours(t *testing.T) {
-	d := Dictionary{}
-	d["minimalhouse"] = []float32{1.0, 0.0}
-	d["opera"] = []float32{-1.0, 0.0}
-	d["house"] = []float32{1.0, 0.1}
-	d["classical"] = []float32{-1.0, 0.1}
+	vectors := []string{
+		"4 2",
+		"minimalhouse 1.0, 0.0",
+		"opera -1.0, 0.0",
+		"house 1.0, 0.1",
+		"classical -1.0, 0.1",
+	}
+
+	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
+	d, err := NewReaderDictionary(r)
+	if err != nil {
+		t.Fatalf("could not load dictionary: %s", err.Error())
+	}
 
 	actual, err := d.NearestNeighbours("minimalhouse", 2)
 	if err != nil {
