@@ -22,25 +22,49 @@ func NewDictionary(r *bufio.Reader) (Dictionary, error) {
 		return Dictionary{}, fmt.Errorf("does not start with 2 fields: %v", meta)
 	}
 
+	words, err := strconv.Atoi(meta[0])
+	if err != nil {
+		return Dictionary{}, fmt.Errorf("words NaN: %s", meta)
+	}
+
 	dims, err := strconv.Atoi(meta[1])
 	if err != nil {
 		return Dictionary{}, fmt.Errorf("dimensions NaN: %s", meta)
 	}
 
-	dict := Dictionary{}
-	for lines.Scan() {
-		fields := strings.Fields(lines.Text())
-		vector := make([]float32, dims)
-		for i := 1; i <= dims; i++ {
-			weight, err := strconv.ParseFloat(fields[i], 32)
-			if err != nil {
-				return Dictionary{}, fmt.Errorf("could not parse weight: %s", fields[i])
-			}
+	var (
+		buf  = make([]float32, words*dims)       // allocate contiguous slice for vectors
+		dict = make(map[string][]float32, words) // allocate dictionary for corpus
+		term = make([]byte, 50)                  // assume max term length is 50
+	)
 
-			vector[i-1] = float32(weight)
+	for i := 0; i < words; i++ {
+		if !lines.Scan() {
+			return Dictionary{}, fmt.Errorf("invalid dictionary file")
 		}
 
-		dict[fields[0]] = vector
+		var (
+			off    = i * dims
+			vector = buf[off : off+dims]
+		)
+
+		fields := strings.Fields(lines.Text())
+
+		for j := 1; j <= dims; j++ {
+			weight, err := strconv.ParseFloat(fields[j], 32)
+			if err != nil {
+				return Dictionary{}, fmt.Errorf("could not parse weight: %s", fields[j])
+			}
+
+			vector[j-1] = float32(weight)
+		}
+
+		// Copy term name and create a new string. The strings in the slice
+		// returned by strings.Fields() are backed by the input string, in this
+		// case one line of the input file. This ensures that we don't hold on to
+		// the lines we have read.
+		copy(term, fields[0])
+		dict[string(term[:len(fields[0])])] = vector
 	}
 
 	return dict, nil
