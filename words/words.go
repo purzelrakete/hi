@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Words contains a word vector definition for each included term.
+// Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
 	NearestNeighbours(term string, k int) ([]string, bool)
@@ -39,6 +39,7 @@ func NewWords(r *bufio.Reader) (Words, error) {
 	var (
 		buf     = make([]float32, words*dims)       // allocate contiguous slice for vectors
 		dictmap = make(map[string][]float32, words) // allocate dictionary for corpus
+		terms   = make([]string, words)             // allocate term ordinal map
 		term    = make([]byte, 50)                  // assume max term length is 50
 	)
 
@@ -50,9 +51,8 @@ func NewWords(r *bufio.Reader) (Words, error) {
 		var (
 			off    = i * dims
 			vector = buf[off : off+dims]
+			fields = strings.Fields(lines.Text())
 		)
-
-		fields := strings.Fields(lines.Text())
 
 		for j := 1; j <= dims; j++ {
 			weight, err := strconv.ParseFloat(fields[j], 32)
@@ -70,26 +70,44 @@ func NewWords(r *bufio.Reader) (Words, error) {
 		copy(term, fields[0])
 
 		key := string(term[:len(fields[0])])
+		terms[i] = key
 		dictmap[key] = vector
 	}
 
-	return &dict{dictmap: dictmap}, nil
+	return &dict{
+		dictmap: dictmap,
+		buf:     buf,
+		terms:   terms,
+		dims:    dims,
+		words:   words,
+	}, nil
 }
 
 type dict struct {
 	dictmap map[string][]float32
+	buf     []float32
+	terms   []string
+	dims    int
+	words   int
 }
 
 // NearestNeighbours returns k nearest tags in vector space.
 func (d *dict) NearestNeighbours(term string, k int) ([]string, bool) {
-	termVector, ok := (*d).dictmap[term]
+	termVector, ok := d.dictmap[term]
 	if !ok {
 		return []string{}, false
 	}
 
 	pq := &PriorityQueue{}
 	heap.Init(pq)
-	for t, v := range d.dictmap {
+
+	for i := 0; i < d.words; i++ {
+		var (
+			off = i * d.dims
+			v   = d.buf[off : off+d.dims]
+			t   = d.terms[i]
+		)
+
 		if term == t {
 			continue
 		}
