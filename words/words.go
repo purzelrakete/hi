@@ -40,13 +40,17 @@ func NewWords(r *bufio.Reader) (Words, error) {
 		buf       = make([]float32, words*dims)       // allocate contiguous slice for vectors
 		dictmap   = make(map[string][]float32, words) // allocate dictionary for corpus
 		terms     = make([]string, words)             // allocate term ordinal map
-		term      = make([]byte, 50)                  // assume max term length is 50
+		term      = make([]byte, 0, 128)              // temp buffer for copying term
 		vecOffset = 2                                 // index at which vectors start
 	)
 
 	for i := 0; i < words; i++ {
 		if !lines.Scan() {
-			return &dict{}, fmt.Errorf("invalid dictionary file")
+			if err := lines.Err(); err != nil {
+				return &dict{}, fmt.Errorf("error scanning dictionary file: %s", err)
+			}
+
+			return &dict{}, fmt.Errorf("unexpected eof; header reports %d words, processed %d lines", words, i)
 		}
 
 		var (
@@ -68,9 +72,9 @@ func NewWords(r *bufio.Reader) (Words, error) {
 		// returned by strings.Fields() are backed by the input string, in this
 		// case one line of the input file. This ensures that we don't hold on to
 		// the lines we have read.
-		copy(term, fields[0])
+		term = append(term[:0], fields[0]...)
 
-		key := string(term[:len(fields[0])])
+		key := string(term)
 		terms[i] = key
 		dictmap[key] = vector
 	}
