@@ -10,7 +10,7 @@ import (
 func TestNewWords(t *testing.T) {
 	vectors := []string{
 		"1 4",
-		"dubstep -0.001058 0.002683 0.000132 0.001072",
+		"dubstep 123 -0.001058 0.002683 0.000132 0.001072",
 	}
 
 	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
@@ -38,10 +38,10 @@ func TestNewWords(t *testing.T) {
 func TestNearestNeighbours(t *testing.T) {
 	vectors := []string{
 		"4 2",
-		"minimalhouse 1.0 0.0",
-		"opera -1.0 0.0",
-		"house 1.0 0.1",
-		"classical -1.0 0.1",
+		"minimalhouse 10 1.0 0.0",
+		"opera 11 -1.0 0.0",
+		"house 12 1.0 0.1",
+		"classical 13 -1.0 0.1",
 	}
 
 	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))

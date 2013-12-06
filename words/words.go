@@ -37,10 +37,11 @@ func NewWords(r *bufio.Reader) (Words, error) {
 	}
 
 	var (
-		buf     = make([]float32, words*dims)       // allocate contiguous slice for vectors
-		dictmap = make(map[string][]float32, words) // allocate dictionary for corpus
-		terms   = make([]string, words)             // allocate term ordinal map
-		term    = make([]byte, 50)                  // assume max term length is 50
+		buf       = make([]float32, words*dims)       // allocate contiguous slice for vectors
+		dictmap   = make(map[string][]float32, words) // allocate dictionary for corpus
+		terms     = make([]string, words)             // allocate term ordinal map
+		term      = make([]byte, 50)                  // assume max term length is 50
+		vecOffset = 2                                 // index at which vectors start
 	)
 
 	for i := 0; i < words; i++ {
@@ -54,13 +55,13 @@ func NewWords(r *bufio.Reader) (Words, error) {
 			fields = strings.Fields(lines.Text())
 		)
 
-		for j := 1; j <= dims; j++ {
-			weight, err := strconv.ParseFloat(fields[j], 32)
+		for j := 0; j < dims; j++ {
+			weight, err := strconv.ParseFloat(fields[j+vecOffset], 32)
 			if err != nil {
 				return &dict{}, fmt.Errorf("could not parse weight: %s", fields[j])
 			}
 
-			vector[j-1] = float32(weight)
+			vector[j] = float32(weight)
 		}
 
 		// Copy term name and create a new string. The strings in the slice
