@@ -8,39 +8,43 @@ import (
 	"strings"
 )
 
-// Dictionary contains a word vector definition for each included term.
-type Dictionary map[string][]float32
+// Words contains a word vector definition for each included term.
+type Words interface {
+	Vector(term string) ([]float32, bool)
+	NearestNeighbours(term string, k int) ([]string, bool)
+	Len() int
+}
 
-// NewDictionary creates a dictionary given a word vector file.
-func NewDictionary(r *bufio.Reader) (Dictionary, error) {
+// NewWords creates a dictionary given a word vector file.
+func NewWords(r *bufio.Reader) (Words, error) {
 	lines := bufio.NewScanner(r)
 
 	// first line is dictionary size, vector dimensions
 	lines.Scan()
 	meta := strings.Fields(lines.Text())
 	if len(meta) != 2 {
-		return Dictionary{}, fmt.Errorf("does not start with 2 fields: %v", meta)
+		return &dict{}, fmt.Errorf("does not start with 2 fields: %v", meta)
 	}
 
 	words, err := strconv.Atoi(meta[0])
 	if err != nil {
-		return Dictionary{}, fmt.Errorf("words NaN: %s", meta)
+		return &dict{}, fmt.Errorf("words NaN: %s", meta)
 	}
 
 	dims, err := strconv.Atoi(meta[1])
 	if err != nil {
-		return Dictionary{}, fmt.Errorf("dimensions NaN: %s", meta)
+		return &dict{}, fmt.Errorf("dimensions NaN: %s", meta)
 	}
 
 	var (
-		buf  = make([]float32, words*dims)       // allocate contiguous slice for vectors
-		dict = make(map[string][]float32, words) // allocate dictionary for corpus
-		term = make([]byte, 50)                  // assume max term length is 50
+		buf     = make([]float32, words*dims)       // allocate contiguous slice for vectors
+		dictmap = make(map[string][]float32, words) // allocate dictionary for corpus
+		term    = make([]byte, 50)                  // assume max term length is 50
 	)
 
 	for i := 0; i < words; i++ {
 		if !lines.Scan() {
-			return Dictionary{}, fmt.Errorf("invalid dictionary file")
+			return &dict{}, fmt.Errorf("invalid dictionary file")
 		}
 
 		var (
@@ -53,7 +57,7 @@ func NewDictionary(r *bufio.Reader) (Dictionary, error) {
 		for j := 1; j <= dims; j++ {
 			weight, err := strconv.ParseFloat(fields[j], 32)
 			if err != nil {
-				return Dictionary{}, fmt.Errorf("could not parse weight: %s", fields[j])
+				return &dict{}, fmt.Errorf("could not parse weight: %s", fields[j])
 			}
 
 			vector[j-1] = float32(weight)
@@ -64,29 +68,36 @@ func NewDictionary(r *bufio.Reader) (Dictionary, error) {
 		// case one line of the input file. This ensures that we don't hold on to
 		// the lines we have read.
 		copy(term, fields[0])
-		dict[string(term[:len(fields[0])])] = vector
+
+		key := string(term[:len(fields[0])])
+		dictmap[key] = vector
 	}
 
-	return dict, nil
+	return &dict{dictmap: dictmap}, nil
+}
+
+type dict struct {
+	dictmap map[string][]float32
 }
 
 // NearestNeighbours returns k nearest tags in vector space.
-func (d *Dictionary) NearestNeighbours(term string, k int) ([]string, error) {
-	termVector, ok := (*d)[term]
+func (d *dict) NearestNeighbours(term string, k int) ([]string, bool) {
+	termVector, ok := (*d).dictmap[term]
 	if !ok {
-		return []string{}, fmt.Errorf("%s not in dictionary", term)
+		return []string{}, false
 	}
 
 	pq := &PriorityQueue{}
 	heap.Init(pq)
-	for t, v := range *d {
+	for t, v := range d.dictmap {
 		if term == t {
 			continue
 		}
 
 		similarity, err := cosine(termVector, v)
 		if err != nil {
-			return []string{}, fmt.Errorf("could not compare %s with %s", term, t)
+			msg := fmt.Sprintf("could not compare %s with %s. should never happen", term, t)
+			panic(msg)
 		}
 
 		// fill the queue up with the first K candidates
@@ -114,5 +125,16 @@ func (d *Dictionary) NearestNeighbours(term string, k int) ([]string, error) {
 		terms[k-i-1] = item.value
 	}
 
-	return terms, nil
+	return terms, true
+}
+
+// Vector returns vector for a given term
+func (d *dict) Vector(term string) ([]float32, bool) {
+	v, ok := d.dictmap[term]
+	return v, ok
+}
+
+// Len of current dictionary
+func (d *dict) Len() int {
+	return len(d.dictmap)
 }
