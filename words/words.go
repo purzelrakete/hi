@@ -46,7 +46,11 @@ func NewWords(r *bufio.Reader) (Words, error) {
 
 	for i := 0; i < words; i++ {
 		if !lines.Scan() {
-			return &dict{}, fmt.Errorf("invalid dictionary file")
+			if err := lines.Err(); err != nil {
+				return &dict{}, fmt.Errorf("error scanning dictionary file: %s", err)
+			}
+
+			return &dict{}, fmt.Errorf("unexpected eof; header reports %d words, processed %d lines", words, i)
 		}
 
 		var (
