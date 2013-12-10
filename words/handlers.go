@@ -9,7 +9,7 @@ import (
 )
 
 // WordsHandler returns similar tags
-func WordsHandler(ws WordsService) http.HandlerFunc {
+func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		tag := r.URL.Query().Get(":tag")
 		if tag == "" {
@@ -19,7 +19,7 @@ func WordsHandler(ws WordsService) http.HandlerFunc {
 			return
 		}
 
-		similar, _ := ws(tag, 5) // similar will be empty if !ok. this is fine.
+		similar, _ := ws(tag, k, θ) // similar will be empty if !ok. this is fine.
 
 		type APIResult struct {
 			Tag     string   `json:"tag"`

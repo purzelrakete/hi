@@ -11,7 +11,7 @@ import (
 // Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
-	NearestNeighbours(term string, k int) ([]string, bool)
+	NearestNeighbours(term string, k int, θ float32) ([]string, bool)
 	Len() int
 }
 
@@ -97,7 +97,7 @@ type dict struct {
 }
 
 // NearestNeighbours returns k nearest tags in vector space.
-func (d *dict) NearestNeighbours(term string, k int) ([]string, bool) {
+func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]string, bool) {
 	termVector, ok := d.dictmap[term]
 	if !ok {
 		return []string{}, false
@@ -121,6 +121,10 @@ func (d *dict) NearestNeighbours(term string, k int) ([]string, bool) {
 		if err != nil {
 			msg := fmt.Sprintf("could not compare %s with %s. should never happen", term, t)
 			panic(msg)
+		}
+
+		if similarity < θ {
+			continue
 		}
 
 		// fill the queue up with the first K candidates
