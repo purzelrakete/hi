@@ -73,7 +73,7 @@ func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 func middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("Cache-Control", "public, max-age=3600")
+		w.Header().Set("Cache-Control", "public, max-age=60")
 
 		report.JSON(os.Stdout, next).ServeHTTP(w, r)
 	}

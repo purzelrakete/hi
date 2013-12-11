@@ -56,7 +56,7 @@ func NewWords(r *bufio.Reader) (Words, error) {
 				return &dict{}, fmt.Errorf("error scanning dictionary file: %s", err)
 			}
 
-			return &dict{}, fmt.Errorf("unexpected eof; header reports %d words, processed %d lines", words, i)
+			return &dict{}, fmt.Errorf("bad eof; %d words in header but %d processed", words, i)
 		}
 
 		var (
@@ -152,10 +152,11 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 		}
 	}
 
-	terms := make([]Hit, pq.Len())
-	for i := 0; pq.Len() > 0; i++ {
+	length := pq.Len()
+	terms := make([]Hit, length)
+	for i := 0; i < length; i++ {
 		item := heap.Pop(pq).(*Item)
-		terms[k-i-1] = Hit{
+		terms[length-i-1] = Hit{
 			Term:       item.value,
 			Similarity: item.priority,
 		}
