@@ -13,7 +13,7 @@ import (
 // WordsHandler returns similar tags
 func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		tag := r.URL.Query().Get(":tag")
+		tag := r.URL.Query().Get("tag")
 		if tag == "" {
 			msg := "Missing tag parameter."
 			log.Println(msg)
@@ -21,7 +21,7 @@ func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 			return
 		}
 
-		if pK := r.URL.Query().Get(":k"); pK != "" {
+		if pK := r.URL.Query().Get("k"); pK != "" {
 			i, err := strconv.ParseInt(pK, 10, 32)
 			if err != nil {
 				msg := fmt.Sprintf("Error parsing k: %s", err.Error())
