@@ -55,8 +55,14 @@ func TestNearestNeighbours(t *testing.T) {
 		t.Fatalf("could not find neighbours")
 	}
 
+	if len(actual) != 2 {
+		t.Fatalf("expected 2 results but got %d", len(actual))
+	}
+
 	expected := []string{"house", "classical"}
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("expected %v but got %v", expected, actual)
+	for i, hit := range actual {
+		if term := hit.Term; term != expected[i] {
+			t.Fatalf("expected %v but got %v", expected[i], term)
+		}
 	}
 }

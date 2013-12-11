@@ -48,8 +48,8 @@ func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 		similar, _ := ws(tag, k, θ) // similar will be empty if !ok. this is fine.
 
 		type APIResult struct {
-			Tag     string   `json:"tag"`
-			Similar []string `json:"similar-tags"`
+			Tag     string `json:"tag"`
+			Similar []Hit  `json:"hits"`
 		}
 
 		json, err := json.Marshal(APIResult{

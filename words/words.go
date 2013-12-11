@@ -11,8 +11,14 @@ import (
 // Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
-	NearestNeighbours(term string, k int, θ float32) ([]string, bool)
+	NearestNeighbours(term string, k int, θ float32) ([]Hit, bool)
 	Len() int
+}
+
+// Hit is a similar term
+type Hit struct {
+	Term       string  `json:"term"`
+	Similarity float32 `json:"similarity"`
 }
 
 // NewWords creates a dictionary given a word vector file.
@@ -96,11 +102,11 @@ type dict struct {
 	words   int
 }
 
-// NearestNeighbours returns k nearest tags in vector space.
-func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]string, bool) {
+// NearestNeighbours returns k nearest hits in vector space.
+func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 	termVector, ok := d.dictmap[term]
 	if !ok {
-		return []string{}, false
+		return []Hit{}, false
 	}
 
 	pq := &PriorityQueue{}
@@ -146,10 +152,13 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]string, bool
 		}
 	}
 
-	terms := make([]string, k)
+	terms := make([]Hit, k)
 	for i := 0; pq.Len() > 0; i++ {
 		item := heap.Pop(pq).(*Item)
-		terms[k-i-1] = item.value
+		terms[k-i-1] = Hit{
+			Term:       item.value,
+			Similarity: item.priority,
+		}
 	}
 
 	return terms, true
