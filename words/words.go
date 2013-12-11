@@ -152,7 +152,7 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 		}
 	}
 
-	terms := make([]Hit, k)
+	terms := make([]Hit, pq.Len())
 	for i := 0; pq.Len() > 0; i++ {
 		item := heap.Pop(pq).(*Item)
 		terms[k-i-1] = Hit{
