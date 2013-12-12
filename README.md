@@ -6,3 +6,5 @@ This is a place for small experiments and excercises. Currently:
 
 - Simulate percolation through a randomly genearted pourous substance.
 - Create a spectrogram from audio files.
+- Read word2vec vectors and serve nearest neighbours
+
