@@ -32,8 +32,8 @@ func NewWordsService(modelPath string) (WordsService, error) {
 	}, nil
 }
 
-// NewwordsServiceStub does fnothing
-func NewwordsServiceStub(modelPath string) (WordsService, error) {
+// NewFnothingService does fnothing
+func NewFnothingService(modelPath string) (WordsService, error) {
 	return func(term string, k int, θ float32) ([]Hit, bool) {
 		return []Hit{
 			Hit{

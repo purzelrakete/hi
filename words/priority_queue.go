@@ -3,7 +3,7 @@ package words
 
 // An Item is something we manage in a priority queue.
 type Item struct {
-	value    string  // The value of the item; arbitrary.
+	ordinal  int     // The value of the item; arbitrary.
 	priority float32 // The priority of the item in the queue.
 }
 

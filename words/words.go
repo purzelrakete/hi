@@ -18,6 +18,7 @@ type Words interface {
 // Hit is a similar term
 type Hit struct {
 	Term       string  `json:"term"`
+	Frequency  float32 `json:"frequency"`
 	Similarity float32 `json:"similarity"`
 }
 
@@ -43,11 +44,12 @@ func NewWords(r *bufio.Reader) (Words, error) {
 	}
 
 	var (
-		buf       = make([]float32, words*dims)       // allocate contiguous slice for vectors
-		dictmap   = make(map[string][]float32, words) // allocate dictionary for corpus
-		terms     = make([]string, words)             // allocate term ordinal map
-		term      = make([]byte, 0, 128)              // temp buffer for copying term
-		vecOffset = 2                                 // index at which vectors start
+		buf         = make([]float32, words*dims)       // allocate contiguous slice for vectors
+		dictmap     = make(map[string][]float32, words) // allocate dictionary for corpus
+		terms       = make([]string, words)             // allocate term ordinal map
+		frequencies = make([]float32, words*dims)       // term frequencies
+		term        = make([]byte, 0, 128)              // temp buffer for copying term
+		vecOffset   = 2                                 // index at which vectors start
 	)
 
 	for i := 0; i < words; i++ {
@@ -74,32 +76,34 @@ func NewWords(r *bufio.Reader) (Words, error) {
 			vector[j] = float32(weight)
 		}
 
+		frequencies[i] = 0
+
 		// Copy term name and create a new string. The strings in the slice
 		// returned by strings.Fields() are backed by the input string, in this
 		// case one line of the input file. This ensures that we don't hold on to
 		// the lines we have read.
 		term = append(term[:0], fields[0]...)
-
-		key := string(term)
-		terms[i] = key
-		dictmap[key] = vector
+		terms[i] = string(term)
+		dictmap[string(term)] = vector
 	}
 
 	return &dict{
-		dictmap: dictmap,
-		buf:     buf,
-		terms:   terms,
-		dims:    dims,
-		words:   words,
+		dictmap:     dictmap,
+		buf:         buf,
+		terms:       terms,
+		frequencies: frequencies,
+		dims:        dims,
+		words:       words,
 	}, nil
 }
 
 type dict struct {
-	dictmap map[string][]float32
-	buf     []float32
-	terms   []string
-	dims    int
-	words   int
+	dictmap     map[string][]float32
+	buf         []float32
+	terms       []string
+	frequencies []float32
+	dims        int
+	words       int
 }
 
 // NearestNeighbours returns k nearest hits in vector space.
@@ -136,7 +140,7 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 		// fill the queue up with the first K candidates
 		if pq.Len() < k {
 			heap.Push(pq, &Item{
-				value:    t,
+				ordinal:  i,
 				priority: similarity,
 			})
 
@@ -145,7 +149,7 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 			if similarity > (*pq)[0].priority {
 				heap.Pop(pq)
 				heap.Push(pq, &Item{
-					value:    t,
+					ordinal:  i,
 					priority: similarity,
 				})
 			}
@@ -157,8 +161,9 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 	for i := 0; i < length; i++ {
 		item := heap.Pop(pq).(*Item)
 		terms[length-i-1] = Hit{
-			Term:       item.value,
+			Term:       d.terms[item.ordinal],
 			Similarity: item.priority,
+			Frequency:  d.frequencies[item.ordinal],
 		}
 	}
 
