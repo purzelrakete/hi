@@ -18,7 +18,7 @@ type Words interface {
 // Hit is a similar term
 type Hit struct {
 	Term       string  `json:"term"`
-	Frequency  float32 `json:"frequency"`
+	Frequency  int     `json:"frequency"`
 	Similarity float32 `json:"similarity"`
 }
 
@@ -47,7 +47,7 @@ func NewWords(r *bufio.Reader) (Words, error) {
 		buf         = make([]float32, words*dims)       // allocate contiguous slice for vectors
 		dictmap     = make(map[string][]float32, words) // allocate dictionary for corpus
 		terms       = make([]string, words)             // allocate term ordinal map
-		frequencies = make([]float32, words*dims)       // term frequencies
+		frequencies = make([]int, words*dims)           // term frequencies
 		term        = make([]byte, 0, 128)              // temp buffer for copying term
 		vecOffset   = 2                                 // index at which vectors start
 	)
@@ -76,7 +76,12 @@ func NewWords(r *bufio.Reader) (Words, error) {
 			vector[j] = float32(weight)
 		}
 
-		frequencies[i] = 0
+		fq, err := strconv.ParseInt(fields[1], 10, 32)
+		if err != nil {
+			return &dict{}, fmt.Errorf("could not parse frequency: %s", fields[1])
+		}
+
+		frequencies[i] = int(fq)
 
 		// Copy term name and create a new string. The strings in the slice
 		// returned by strings.Fields() are backed by the input string, in this
@@ -101,7 +106,7 @@ type dict struct {
 	dictmap     map[string][]float32
 	buf         []float32
 	terms       []string
-	frequencies []float32
+	frequencies []int
 	dims        int
 	words       int
 }
