@@ -7,7 +7,7 @@ import (
 )
 
 // WordsService returns a list of terms similar to the given one.
-type WordsService func(term string, k int, θ float32) ([]Hit, bool)
+type WordsService func(term string, k, minfq int, θ float32) ([]Hit, bool)
 
 // NewWordsService is a similarity function backed by word2vec vectors
 func NewWordsService(modelPath string) (WordsService, error) {
@@ -27,14 +27,14 @@ func NewWordsService(modelPath string) (WordsService, error) {
 		return nil, fmt.Errorf("could not get words: %s", err.Error())
 	}
 
-	return func(term string, k int, θ float32) ([]Hit, bool) {
-		return words.NearestNeighbours(term, k, θ)
+	return func(term string, k, minfq int, θ float32) ([]Hit, bool) {
+		return words.NearestNeighbours(term, k, minfq, θ)
 	}, nil
 }
 
 // NewFnothingService does fnothing
 func NewFnothingService(modelPath string) (WordsService, error) {
-	return func(term string, k int, θ float32) ([]Hit, bool) {
+	return func(term string, k, minfq int, θ float32) ([]Hit, bool) {
 		return []Hit{
 			Hit{
 				Term: term,

@@ -11,41 +11,46 @@ import (
 )
 
 // WordsHandler returns similar tags
-func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
+func WordsHandler(ws WordsService, max, minFq int, minSimilarity float32) http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		tag := r.URL.Query().Get(":tag")
 		if tag == "" {
-			msg := "Missing tag parameter."
-			log.Println(msg)
-			http.Error(w, msg, http.StatusBadRequest)
+			errf(w, "Missing tag parameter.")
 			return
 		}
 
-		if pK := r.URL.Query().Get("k"); pK != "" {
-			i, err := strconv.ParseInt(pK, 10, 32)
+		if pMax := r.URL.Query().Get("max-results"); pMax != "" {
+			i, err := strconv.ParseInt(pMax, 10, 32)
 			if err != nil {
-				msg := fmt.Sprintf("Error parsing k: %s", err.Error())
-				log.Println(msg)
-				http.Error(w, msg, http.StatusBadRequest)
+				errf(w, "Error parsing k: %s", err.Error())
 				return
 			}
 
-			k = int(i)
+			max = int(i)
 		}
 
-		if pθ := r.URL.Query().Get("theta"); pθ != "" {
-			f, err := strconv.ParseFloat(pθ, 32)
+		if pMinSimilarity := r.URL.Query().Get("min-similarity"); pMinSimilarity != "" {
+			f, err := strconv.ParseFloat(pMinSimilarity, 32)
 			if err != nil {
-				msg := fmt.Sprintf("Error parsing theta: %s", err.Error())
-				log.Println(msg)
-				http.Error(w, msg, http.StatusBadRequest)
+				errf(w, "Error parsing theta: %s", err.Error())
 				return
 			}
 
-			θ = float32(f)
+			minSimilarity = float32(f)
 		}
 
-		similar, _ := ws(tag, k, θ) // similar will be empty if !ok. this is fine.
+		if pMinFq := r.URL.Query().Get("min-frequency"); pMinFq != "" {
+			i, err := strconv.ParseInt(pMinFq, 10, 32)
+			if err != nil {
+				errf(w, "Error parsing min frequency: %s", err.Error())
+				return
+			}
+
+			minFq = int(i)
+		}
+
+		// similar will be empty if !ok. this is fine.
+		similar, _ := ws(tag, max, minFq, minSimilarity)
 
 		type APIResult struct {
 			Tag     string `json:"tag"`
@@ -58,8 +63,7 @@ func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 		})
 
 		if err != nil {
-			log.Println("Error creating JSON.")
-			http.Error(w, "Error creating JSON.", http.StatusInternalServerError)
+			errf(w, "Error creating JSON.")
 			return
 		}
 
@@ -67,6 +71,11 @@ func WordsHandler(ws WordsService, k int, θ float32) http.HandlerFunc {
 	}
 
 	return middleware(handler)
+}
+
+func errf(w http.ResponseWriter, msg string, things ...interface{}) {
+	log.Println(fmt.Sprintf(msg, things...))
+	http.Error(w, msg, http.StatusBadRequest)
 }
 
 // middleware sets json and cache control headers, adds logging.

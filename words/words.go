@@ -11,7 +11,7 @@ import (
 // Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
-	NearestNeighbours(term string, k int, θ float32) ([]Hit, bool)
+	NearestNeighbours(term string, k, fq int, θ float32) ([]Hit, bool)
 	Len() int
 }
 
@@ -58,7 +58,7 @@ func NewWords(r *bufio.Reader) (Words, error) {
 				return &dict{}, fmt.Errorf("error scanning dictionary file: %s", err)
 			}
 
-			return &dict{}, fmt.Errorf("bad eof; %d words in header but %d processed", words, i)
+			return &dict{}, fmt.Errorf("eof. %d words in header, %d processed", words, i)
 		}
 
 		var (
@@ -112,7 +112,7 @@ type dict struct {
 }
 
 // NearestNeighbours returns k nearest hits in vector space.
-func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
+func (d *dict) NearestNeighbours(term string, k, minFq int, θ float32) ([]Hit, bool) {
 	termVector, ok := d.dictmap[term]
 	if !ok {
 		return []Hit{}, false
@@ -126,16 +126,16 @@ func (d *dict) NearestNeighbours(term string, k int, θ float32) ([]Hit, bool) {
 			off = i * d.dims
 			v   = d.buf[off : off+d.dims]
 			t   = d.terms[i]
+			fq  = d.frequencies[i]
 		)
 
-		if term == t {
+		if term == t || fq < minFq {
 			continue
 		}
 
 		similarity, err := cosine(termVector, v)
 		if err != nil {
-			msg := fmt.Sprintf("could not compare %s with %s. should never happen", term, t)
-			panic(msg)
+			panic(fmt.Sprintf("could not compare %s with %s.", term, t))
 		}
 
 		if similarity < θ {
