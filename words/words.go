@@ -11,7 +11,7 @@ import (
 // Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
-	NearestNeighbours(term string, k, fq int, θ float32) ([]Hit, bool)
+	NN(term string, k, fq int, θ float32) ([]Hit, bool)
 	Len() int
 }
 
@@ -111,8 +111,8 @@ type dict struct {
 	words       int
 }
 
-// NearestNeighbours returns k nearest hits in vector space.
-func (d *dict) NearestNeighbours(term string, k, minFq int, θ float32) ([]Hit, bool) {
+// NN returns k nearest neighbours in vector space.
+func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool) {
 	termVector, ok := d.dictmap[term]
 	if !ok {
 		return []Hit{}, false

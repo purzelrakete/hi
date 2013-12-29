@@ -1,16 +1,16 @@
 // taken from golang heap examples
 package words
 
-// An Item is something we manage in a priority queue.
 type Item struct {
-	ordinal  int     // The value of the item; arbitrary.
-	priority float32 // The priority of the item in the queue.
+	ordinal  int
+	priority float32
 }
 
-// A PriorityQueue implements heap.Interface and holds Items.
 type PriorityQueue []*Item
 
-func (pq PriorityQueue) Len() int { return len(pq) }
+func (pq PriorityQueue) Len() int {
+	return len(pq)
+}
 
 func (pq PriorityQueue) Less(i, j int) bool {
 	return pq[i].priority < pq[j].priority

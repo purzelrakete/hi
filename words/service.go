@@ -28,17 +28,6 @@ func NewWordsService(modelPath string) (WordsService, error) {
 	}
 
 	return func(term string, k, minfq int, θ float32) ([]Hit, bool) {
-		return words.NearestNeighbours(term, k, minfq, θ)
-	}, nil
-}
-
-// NewFnothingService does fnothing
-func NewFnothingService(modelPath string) (WordsService, error) {
-	return func(term string, k, minfq int, θ float32) ([]Hit, bool) {
-		return []Hit{
-			Hit{
-				Term: term,
-			},
-		}, true
+		return words.NN(term, k, minfq, θ)
 	}, nil
 }

@@ -2,7 +2,6 @@ package words
 
 import (
 	"bufio"
-
 	"reflect"
 	"strings"
 	"testing"
@@ -51,7 +50,7 @@ func TestNearestNeighbours(t *testing.T) {
 		t.Fatalf("could not load dictionary: %s", err.Error())
 	}
 
-	actual, ok := d.NearestNeighbours("minimalhouse", 2, 0, -1)
+	actual, ok := d.NN("minimalhouse", 2, 0, -1)
 	if !ok {
 		t.Fatalf("could not find neighbours")
 	}
