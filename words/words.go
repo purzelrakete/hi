@@ -22,8 +22,8 @@ type Hit struct {
 	Similarity float32 `json:"similarity"`
 }
 
-// NewWords creates a dictionary given a word vector file.
-func NewWords(r *bufio.Reader) (Words, error) {
+// New creates a dictionary given a word vector file.
+func New(r *bufio.Reader) (Words, error) {
 	lines := bufio.NewScanner(r)
 
 	// first line is dictionary size, vector dimensions

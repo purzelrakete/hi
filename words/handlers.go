@@ -10,8 +10,8 @@ import (
 	"strconv"
 )
 
-// WordsHandler returns similar tags
-func WordsHandler(ws WordsService, max, minFq int, minSimilarity float32) http.HandlerFunc {
+// Handler returns similar tags
+func Handler(ws Service, max, minFq int, minSimilarity float32) http.HandlerFunc {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		tag := r.URL.Query().Get(":tag")
 		if tag == "" {

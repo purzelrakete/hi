@@ -7,14 +7,14 @@ import (
 	"testing"
 )
 
-func TestNewWords(t *testing.T) {
+func TestNew(t *testing.T) {
 	vectors := []string{
 		"1 4",
 		"dubstep 123 -0.001058 0.002683 0.000132 0.001072",
 	}
 
 	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
-	d, err := NewWords(r)
+	d, err := New(r)
 	if err != nil {
 		t.Fatalf("could not load Words: %s", err.Error())
 	}
@@ -45,7 +45,7 @@ func TestNearestNeighbours(t *testing.T) {
 	}
 
 	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
-	d, err := NewWords(r)
+	d, err := New(r)
 	if err != nil {
 		t.Fatalf("could not load dictionary: %s", err.Error())
 	}

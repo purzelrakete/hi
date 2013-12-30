@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-// WordsService returns a list of terms similar to the given one.
-type WordsService func(term string, k, minfq int, θ float32) ([]Hit, bool)
+// Service returns a list of terms similar to the given one.
+type Service func(term string, k, minfq int, θ float32) ([]Hit, bool)
 
-// NewWordsService is a similarity function backed by word2vec vectors
-func NewWordsService(modelPath string) (WordsService, error) {
+// NewService is a similarity function backed by word2vec vectors
+func NewService(modelPath string) (Service, error) {
 	resp, err := http.Get(modelPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get %s: %s", modelPath, err.Error())
@@ -22,7 +22,7 @@ func NewWordsService(modelPath string) (WordsService, error) {
 		return nil, fmt.Errorf("could not get %s: %d", modelPath, resp.StatusCode)
 	}
 
-	words, err := NewWords(bufio.NewReader(resp.Body))
+	words, err := New(bufio.NewReader(resp.Body))
 	if err != nil {
 		return nil, fmt.Errorf("could not get words: %s", err.Error())
 	}
