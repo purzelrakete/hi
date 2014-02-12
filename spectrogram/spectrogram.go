@@ -26,9 +26,9 @@ func NewSpectrogram(r io.Reader, windowLen, overlap int) (*Spectrogram, error) {
 		return &Spectrogram{}, fmt.Errorf("%d chans, not %d", actual, expected)
 	}
 
-	sampleData := make([]float64, len(data.Data16[0]))
-	for i, s := range data.Data16[0] {
-		sampleData[i] = float64(s)
+	sampleData := make([]float64, data.NumSamples)
+	for i := range data.Data {
+		sampleData[i] = float64(data.Data[i][0])
 	}
 
 	// create hammed windows for the fft

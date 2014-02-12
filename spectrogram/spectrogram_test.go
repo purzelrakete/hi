@@ -18,7 +18,9 @@ func TestDrawSpectrogram(t *testing.T) {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
 
-	Draw(s, "spectrogram.png")
+	if err := Draw(s, "spectrogram.png"); err != nil {
+		t.Fatalf("could not draw spectrogram: %s", err.Error())
+	}
 
 	// TODO: assert something for the love of god
 }

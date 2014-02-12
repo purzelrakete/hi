@@ -10,7 +10,7 @@ render: test
 	open spectrogram.png
 
 deps:
-	go get -v
+	go get -v -u
 
 clean:
 	go clean
