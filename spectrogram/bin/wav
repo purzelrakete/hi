@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -u
+set -e
+
+ffmpeg -i $infile $outwav

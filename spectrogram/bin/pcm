@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+set -u
+
+ffmpeg -i $infile -f s16le -acodec pcm_s16le $outfile
