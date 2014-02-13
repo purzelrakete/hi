@@ -7,7 +7,7 @@ test: build
 	go test -v
 
 render: test
-	open spectrogram.png
+	open spectrogram-*.png
 
 deps:
 	go get -v
