@@ -13,7 +13,7 @@ import (
 
 // Plan for fftw
 type Plan struct {
-	fftw_p C.fftw_plan
+	fftwP C.fftw_plan
 	sync.Mutex
 }
 
@@ -21,7 +21,7 @@ type Plan struct {
 func New(data [][]complex128) *Plan {
 	pData := (unsafe.Pointer)(&data[0][0])
 	return &Plan{
-		fftw_p: C.fftw_plan_dft_2d(
+		fftwP: C.fftw_plan_dft_2d(
 			(C.int)(len(data)),       // nrows
 			(C.int)(len(data[0])),    // ncolumns
 			(*C.fftw_complex)(pData), // input slice
@@ -35,14 +35,14 @@ func New(data [][]complex128) *Plan {
 func (p *Plan) Execute() {
 	p.Lock()
 	defer p.Unlock()
-	C.fftw_execute(p.fftw_p)
+	C.fftw_execute(p.fftwP)
 }
 
 // Destroy the plan
 func (p *Plan) Destroy() {
 	p.Lock()
 	defer p.Unlock()
-	C.fftw_destroy_plan(p.fftw_p)
+	C.fftw_destroy_plan(p.fftwP)
 }
 
 // Alloc2D allocates a complex matrix for fftw
