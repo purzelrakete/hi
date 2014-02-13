@@ -7,7 +7,7 @@ import (
 )
 
 func TestDrawSpectrogram(t *testing.T) {
-	file, err := os.Open("A.wav")
+	file, err := os.Open("440.wav")
 	if err != nil {
 		t.Fatalf("could not open wav fixture: %s", err.Error())
 	}
@@ -20,31 +20,31 @@ func TestDrawSpectrogram(t *testing.T) {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
 
-	if err := Draw(s, "spectrogram_A.png"); err != nil {
+	if err := Draw(s, "spectrogram-440.png"); err != nil {
 		t.Fatalf("could not draw spectrogram: %s", err.Error())
 	}
 
-	fileA, err := os.Open("sweep.wav")
+	file440, err := os.Open("sweep.wav")
 	if err != nil {
 		t.Fatalf("could not open wav fixture: %s", err.Error())
 	}
 
-	defer fileA.Close()
+	defer file440.Close()
 
-	s, err = NewSpectrogram(fileA, windowLen, noverlap)
+	s, err = NewSpectrogram(file440, windowLen, noverlap)
 	if err != nil {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
 
-	if err = Draw(s, "spectrogram_sweep.png"); err != nil {
+	if err = Draw(s, "spectrogram-sweep.png"); err != nil {
 		t.Fatalf("could not draw spectrogram: %s", err.Error())
 	}
 
 	// TODO: assert something for the love of god
 }
 
-func TestSpectrogramA(t *testing.T) {
-	file, err := os.Open("A.wav")
+func TestSpectrogram440(t *testing.T) {
+	file, err := os.Open("440.wav")
 	if err != nil {
 		t.Fatalf("could not open wav fixture: %s", err.Error())
 	}
