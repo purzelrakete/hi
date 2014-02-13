@@ -3,15 +3,24 @@ package spectrogram
 import (
 	"fmt"
 	"github.com/mjibson/go-dsp/fft"
+	"github.com/mjibson/go-dsp/spectral"
 	"github.com/mjibson/go-dsp/wav"
 	"io"
+	"math"
 	"math/cmplx"
 )
 
 // Spectrogram of an audio file
-type Spectrogram [][]uint8
+type Spectrogram struct {
+	data         [][]float64
+	sampleRate   uint32
+	windowLength int
+	overlap      int
+	numSamples   int
+}
 
 // NewSpectrogram constructs a spectrogram
+// windowLen should be a power of 2
 func NewSpectrogram(r io.Reader, windowLen, overlap int) (*Spectrogram, error) {
 	data, err := wav.ReadWav(r)
 	if err != nil {
@@ -26,43 +35,60 @@ func NewSpectrogram(r io.Reader, windowLen, overlap int) (*Spectrogram, error) {
 		return &Spectrogram{}, fmt.Errorf("%d chans, not %d", actual, expected)
 	}
 
-	sampleData := make([]float64, data.NumSamples)
-	for i := range data.Data {
-		sampleData[i] = float64(data.Data[i][0])
-	}
-
-	// create hammed windows for the fft
-	windows := SegmentColumns(sampleData, windowLen, overlap)
-	ApplyHammingColumns(windows)
-
-	// doit
-	t := fft.FFT2Real(windows)
-
-	// get the positive fq components
-	t = t[int(windowLen/2):windowLen]
-
 	// find maximum energy
-	max := 0.0
-	for y := range t {
-		for _, point := range t[y] {
-			amplitude := cmplx.Abs(point) // discard phase
-			if amplitude > max {
-				max = amplitude
-			}
+	max := -math.MaxFloat64
+	for _, value := range data.Data {
+		if max < float64(value[0]) {
+			max = float64(value[0])
 		}
 	}
 
-	// normalized by max, convert to unit8, transpose
-	s := make(Spectrogram, len(t))
-	for y := range t {
-		s[y] = make([]uint8, len(t[y]))
-		for x := range t[y] {
-			s[y][x] = uint8(255 * cmplx.Abs(t[y][x]) / max)
+	sampleData := make([]float64, data.NumSamples)
+	for i := range data.Data {
+		sampleData[i] = float64(data.Data[i][0]) / max
+	}
+
+	// create hammed windows for the fft
+	windows := spectral.Segment(sampleData, windowLen, overlap)
+	nWindow := len(windows) // (len(sampleData) - windowLen) / (windowLen - overlap) + 1
+	ApplyHamming(windows)
+
+	// do the fft, get positive fq components, and discard phase
+	s := Spectrogram{
+		data:         make([][]float64, nWindow),
+		sampleRate:   data.SampleRate,
+		windowLength: windowLen,
+		overlap:      overlap,
+		numSamples:   data.NumSamples,
+	}
+
+	for i, w := range windows {
+		s.data[i] = make([]float64, int(windowLen/2))
+		for j, v := range fft.FFTReal(w)[0:int(windowLen/2)] {
+			s.data[i][j] = 2 * cmplx.Abs(v)
 		}
 	}
 
 	return &s, nil
 }
 
-func (s *Spectrogram) Height() int { return len(*s) }
-func (s *Spectrogram) Width() int  { return len((*s)[0]) }
+func (s *Spectrogram) NumFreqSlots() int { return len((*s).data[0]) }
+func (s *Spectrogram) NumTimeSlots() int { return len((*s).data) }
+
+func (s *Spectrogram) IdxToFreq(i int) (float64, error) {
+	if i < 0 || i >= (*s).NumFreqSlots() {
+		return math.NaN(), fmt.Errorf("invalid index for frequencies: %d", i)
+	}
+
+	return float64(i) / 2.0 * float64((*s).sampleRate) / float64((*s).NumFreqSlots()), nil
+}
+
+func (s *Spectrogram) IdxToTime(i int) (float64, error) {
+	if i < 0 || i >= (*s).NumTimeSlots() {
+		return math.NaN(), fmt.Errorf("invalid index for time windows: %d", i)
+	}
+
+	// corresponding slot in time domain
+	j := float64(((*s).windowLength-(*s).overlap)*i) + float64((*s).windowLength)/2.0
+	return j / float64((*s).sampleRate), nil
+}

@@ -5,12 +5,18 @@ import (
 	colorful "github.com/lucasb-eyer/go-colorful"
 	"image"
 	"image/png"
+	"math"
 	"os"
 )
 
 // Draw spectrogram and save to filename
 func Draw(s *Spectrogram, filename string) error {
-	img := image.NewRGBA(image.Rect(0, 0, s.Width(), s.Height()))
+	return DrawXY(s, filename, 100, 100)
+}
+
+// DrawXY spectrogram with certain height and width and save to filename
+func DrawXY(s *Spectrogram, filename string, height, width int) error {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	colormap := gradientTable{
 		{MustParseHex("#3d1ecc"), 0.0},
 		{MustParseHex("#3288bd"), 0.1},
@@ -25,10 +31,28 @@ func Draw(s *Spectrogram, filename string) error {
 		{MustParseHex("#9e0142"), 1.0},
 	}
 
-	for x := 0; x < s.Width(); x++ {
-		for y := 0; y < s.Height(); y++ {
-			intensity := float64((*s)[y][x]) / float64(256)
-			img.Set(x, y, colormap.getInterpolatedColorFor(intensity))
+	// take the maximum only over points that are plotted
+	max := -math.MaxFloat64
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			// rescale number of slots to height and width
+			i := int(float64(x*(*s).NumTimeSlots())/float64(width) + 0.5)
+			j := int(math.Pow(2.0, (math.Log2(float64((*s).NumFreqSlots()))/float64(height)*float64(y)))+0.5) - 1
+			amplitude := (*s).data[i][j]
+			if amplitude > max {
+				max = amplitude
+			}
+		}
+	}
+
+	// draw with log-scaled freqs
+	for x := 0; x < width; x++ {
+		for y := 0; y < height; y++ {
+			// rescale number of slots to height and width
+			i := int(float64(x*(*s).NumTimeSlots())/float64(width) + 0.5)
+			j := int(math.Pow(2.0, (math.Log2(float64((*s).NumFreqSlots()))/float64(height)*float64(y)))+0.5) - 1
+			intensity := (*s).data[i][j] / max
+			img.Set(x, height-y-1, colormap.getInterpolatedColorFor(intensity))
 		}
 	}
 

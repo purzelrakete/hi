@@ -61,14 +61,16 @@ func drawMatrix(in, out string) {
 	}
 
 	// normalized by max, convert to unit8, transpose
-	s := make(Spectrogram, len(t))
+	s := Spectrogram{
+		data: make([][]float64, len(t)),
+	}
 	for y := range t {
-		s[y] = make([]uint8, len(t[y]))
+		s.data[y] = make([]float64, len(t[y]))
 		for x := range t[y] {
-			s[y][x] = uint8(255 * t[y][x] / max)
+			s.data[y][x] = float64(255 * t[y][x] / max)
 		}
 	}
 
-	s = s[int(len(s)/2):len(s)]
+	s.data = s.data[int(len(s.data)/2):len(s.data)]
 	Draw(&s, out)
 }
