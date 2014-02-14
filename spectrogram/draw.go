@@ -31,21 +31,25 @@ func Draw(s *Spectrogram, filename string) error {
 	return DrawXY(s, filename, 100, 100)
 }
 
+// TODO(cs): take maximum / average from range
 // DrawXY spectrogram with certain height and width and save to filename
 func DrawXY(s *Spectrogram, filename string, height, width int) error {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
-	// take the maximum only over points that are plotted
-	max, magic_number := -math.MaxFloat64, 0.5
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			// rescale number of frequency slots to height and time slots to width
-			nfreqs := float64((*s).NumFreqSlots())
-			ntimes := float64((*s).NumTimeSlots())
-			magic_term := math.Log2(nfreqs) / float64(height) * float64(y)
+	nfreqs, ntimes := float64((*s).NumFreqSlots()), float64((*s).NumTimeSlots())
 
-			i := int(float64(x) * ntimes / (float64(width) + magic_number))
-			j := int(math.Pow(2.0, magic_term)+magic_number) - 1
+	// move to log scale for frequencies
+	nfreqsLog := math.Log(nfreqs)
+
+	// take the maximum only over points that are plotted
+	max := -math.MaxFloat64
+	for x := 1; x <= width; x++ {
+		// use rule of three to project (linear) time slots to width
+		i := ceil(float64(x)*ntimes/(float64(width))) - 1
+		for y := 1; y <= height; y++ {
+			// use rule of three to project (log) frequency slots to height
+			jLog := float64(y) * nfreqsLog / (float64(height))
+			j := ceil(math.Exp(jLog)) - 1
 
 			amplitude := (*s).data[i][j]
 			if amplitude > max {
@@ -54,12 +58,15 @@ func DrawXY(s *Spectrogram, filename string, height, width int) error {
 		}
 	}
 
-	// draw with log-scaled freqs
-	for x := 0; x < width; x++ {
-		for y := 0; y < height; y++ {
-			// rescale number of slots to height and width
-			i := int(float64(x*(*s).NumTimeSlots())/float64(width) + 0.5)
-			j := int(math.Pow(2.0, (math.Log2(float64((*s).NumFreqSlots()))/float64(height)*float64(y)))+0.5) - 1
+	// draw log-scaled freqs
+	for x := 1; x <= width; x++ {
+		// use rule of three to project (linear) time slots to width
+		i := ceil(float64(x)*ntimes/(float64(width))) - 1
+		for y := 1; y <= height; y++ {
+			// use rule of three to project (log) frequency slots to height
+			jLog := float64(y) * nfreqsLog / (float64(height))
+			j := ceil(math.Exp(jLog)) - 1
+
 			intensity := (*s).data[i][j] / max
 			img.Set(x, height-y-1, colormap.getInterpolatedColorFor(intensity))
 		}
@@ -111,4 +118,9 @@ func mustParseHex(s string) colorful.Color {
 	}
 
 	return c
+}
+
+// round an float following the mathematical laws
+func ceil(f float64) int {
+	return int(math.Ceil(f))
 }

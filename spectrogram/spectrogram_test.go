@@ -7,15 +7,15 @@ import (
 )
 
 func TestDrawSpectrogram(t *testing.T) {
-	file, err := os.Open("440.wav")
+	file440, err := os.Open("440.wav")
 	if err != nil {
 		t.Fatalf("could not open wav fixture: %s", err.Error())
 	}
 
-	defer file.Close()
+	defer file440.Close()
 
-	windowLen, noverlap := 256, 128
-	s, err := NewSpectrogram(file, windowLen, noverlap)
+	windowLen, noverlap := 990, 0
+	s, err := NewSpectrogram(file440, windowLen, noverlap)
 	if err != nil {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
@@ -24,14 +24,14 @@ func TestDrawSpectrogram(t *testing.T) {
 		t.Fatalf("could not draw spectrogram: %s", err.Error())
 	}
 
-	file440, err := os.Open("sweep.wav")
+	fileSweep, err := os.Open("sweep.wav")
 	if err != nil {
 		t.Fatalf("could not open wav fixture: %s", err.Error())
 	}
 
-	defer file440.Close()
+	defer fileSweep.Close()
 
-	s, err = NewSpectrogram(file440, windowLen, noverlap)
+	s, err = NewSpectrogram(fileSweep, windowLen, noverlap)
 	if err != nil {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
