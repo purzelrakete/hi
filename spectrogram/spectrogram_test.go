@@ -20,7 +20,7 @@ func TestDrawSpectrogram(t *testing.T) {
 		t.Fatalf("could not generate spectrogram: %s", err.Error())
 	}
 
-	if err := Draw(s, "spectrogram-440.png"); err != nil {
+	if err := DrawXY(s, "spectrogram-440.png", 200, 1000); err != nil {
 		t.Fatalf("could not draw spectrogram: %s", err.Error())
 	}
 
@@ -73,7 +73,6 @@ func TestSpectrogram440(t *testing.T) {
 			t.Fatalf("expected %v but got %v", expected, got)
 		}
 	}
-
 }
 
 func TestSpectrogramSweep(t *testing.T) {

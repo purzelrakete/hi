@@ -9,6 +9,23 @@ import (
 	"os"
 )
 
+var (
+	// colormap for spectrogram. lowest fqs are blue, highest are red.
+	colormap = gradientTable{
+		{mustParseHex("#3d1ecc"), 0.0},
+		{mustParseHex("#3288bd"), 0.1},
+		{mustParseHex("#66c2a5"), 0.2},
+		{mustParseHex("#abdda4"), 0.3},
+		{mustParseHex("#e6f598"), 0.4},
+		{mustParseHex("#ffffbf"), 0.5},
+		{mustParseHex("#fee090"), 0.6},
+		{mustParseHex("#fdae61"), 0.7},
+		{mustParseHex("#f46d43"), 0.8},
+		{mustParseHex("#d53e4f"), 0.9},
+		{mustParseHex("#9e0142"), 1.0},
+	}
+)
+
 // Draw spectrogram and save to filename
 func Draw(s *Spectrogram, filename string) error {
 	return DrawXY(s, filename, 100, 100)
@@ -17,27 +34,19 @@ func Draw(s *Spectrogram, filename string) error {
 // DrawXY spectrogram with certain height and width and save to filename
 func DrawXY(s *Spectrogram, filename string, height, width int) error {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	colormap := gradientTable{
-		{MustParseHex("#3d1ecc"), 0.0},
-		{MustParseHex("#3288bd"), 0.1},
-		{MustParseHex("#66c2a5"), 0.2},
-		{MustParseHex("#abdda4"), 0.3},
-		{MustParseHex("#e6f598"), 0.4},
-		{MustParseHex("#ffffbf"), 0.5},
-		{MustParseHex("#fee090"), 0.6},
-		{MustParseHex("#fdae61"), 0.7},
-		{MustParseHex("#f46d43"), 0.8},
-		{MustParseHex("#d53e4f"), 0.9},
-		{MustParseHex("#9e0142"), 1.0},
-	}
 
 	// take the maximum only over points that are plotted
-	max := -math.MaxFloat64
+	max, magic_number := -math.MaxFloat64, 0.5
 	for x := 0; x < width; x++ {
 		for y := 0; y < height; y++ {
-			// rescale number of slots to height and width
-			i := int(float64(x*(*s).NumTimeSlots())/float64(width) + 0.5)
-			j := int(math.Pow(2.0, (math.Log2(float64((*s).NumFreqSlots()))/float64(height)*float64(y)))+0.5) - 1
+			// rescale number of frequency slots to height and time slots to width
+			nfreqs := float64((*s).NumFreqSlots())
+			ntimes := float64((*s).NumTimeSlots())
+			magic_term := math.Log2(nfreqs) / float64(height) * float64(y)
+
+			i := int(float64(x) * ntimes / (float64(width) + magic_number))
+			j := int(math.Pow(2.0, magic_term)+magic_number) - 1
+
 			amplitude := (*s).data[i][j]
 			if amplitude > max {
 				max = amplitude
@@ -95,12 +104,11 @@ func (g gradientTable) getInterpolatedColorFor(t float64) colorful.Color {
 	return g[0].col
 }
 
-// This is a very nice thing Golang forces you to do!
-// It is necessary so that we can write out the literal of the colortable below.
-func MustParseHex(s string) colorful.Color {
+func mustParseHex(s string) colorful.Color {
 	c, err := colorful.Hex(s)
 	if err != nil {
 		panic("MustParseHex: " + err.Error())
 	}
+
 	return c
 }
