@@ -6,8 +6,9 @@ import (
 	"net/http"
 )
 
-// Service returns a list of terms similar to the given one.
-type Service func(term string, k, minfq int, θ float32) ([]Hit, bool)
+// Service returns a list of terms similar to the given one, bool ok, and
+// a vector representation of the query term.
+type Service func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32)
 
 // NewService is a similarity function backed by word2vec vectors
 func NewService(modelPath string) (Service, error) {
@@ -27,7 +28,7 @@ func NewService(modelPath string) (Service, error) {
 		return nil, fmt.Errorf("could not get words: %s", err.Error())
 	}
 
-	return func(term string, k, minfq int, θ float32) ([]Hit, bool) {
+	return func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32) {
 		return words.NN(term, k, minfq, θ)
 	}, nil
 }

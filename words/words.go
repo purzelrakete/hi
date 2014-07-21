@@ -11,15 +11,16 @@ import (
 // Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
-	NN(term string, k, fq int, θ float32) ([]Hit, bool)
+	NN(term string, k, fq int, θ float32) ([]Hit, bool, []float32)
 	Len() int
 }
 
 // Hit is a similar term
 type Hit struct {
-	Term       string  `json:"term"`
-	Frequency  int     `json:"frequency"`
-	Similarity float32 `json:"similarity"`
+	Term       string    `json:"term"`
+	Frequency  int       `json:"frequency"`
+	Similarity float32   `json:"similarity"`
+	Vector		 []float32 `json:"vector"`
 }
 
 // New creates a dictionary given a word vector file.
@@ -112,10 +113,10 @@ type dict struct {
 }
 
 // NN returns k nearest neighbours in vector space.
-func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool) {
+func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool, []float32) {
 	termVector, ok := d.dictmap[term]
 	if !ok {
-		return []Hit{}, false
+		return []Hit{}, false, []float32{}
 	}
 
 	pq := &PriorityQueue{}
@@ -165,14 +166,16 @@ func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool) {
 	terms := make([]Hit, length)
 	for i := 0; i < length; i++ {
 		item := heap.Pop(pq).(*Item)
+		off := item.ordinal * d.dims
 		terms[length-i-1] = Hit{
 			Term:       d.terms[item.ordinal],
 			Similarity: item.priority,
 			Frequency:  d.frequencies[item.ordinal],
+			Vector: d.buf[off : off+d.dims],
 		}
 	}
 
-	return terms, true
+	return terms, true, termVector
 }
 
 // Vector returns vector for a given term
