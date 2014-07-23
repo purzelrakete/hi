@@ -9,6 +9,7 @@ import (
 // Service returns a list of terms similar to the given one, bool ok, and
 // a vector representation of the query term.
 type Service interface {
+	Vector(term string) ([]float32, bool)
 	NN(term string, k, minfq int, θ float32) ([]Hit, bool, []float32)
 	NNVector(queryVector []float32, k, minfq int, θ float32) ([]Hit, bool, []float32)
 }
