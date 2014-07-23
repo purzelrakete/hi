@@ -12,8 +12,8 @@ import (
 // Words contains a word vector definition for each included term
 type Words interface {
 	Vector(term string) ([]float32, bool)
-	NN(term string, k, fq int, θ float32) ([]Hit, bool, []float32)
-	NNVector(vector []float32, k, fq int, θ float32) ([]Hit, bool, []float32)
+	NN(term string, k, fq int, θ float32) ([]Hit, bool)
+	NNVector(vector []float32, k, fq int, θ float32) ([]Hit, bool)
 	Len() int
 }
 
@@ -115,17 +115,17 @@ type dict struct {
 }
 
 // NN returns k nearest neighbours in vector space.
-func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool, []float32) {
+func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool) {
 	termVector, ok := d.dictmap[term]
 	if !ok {
-		return []Hit{}, false, []float32{}
+		return []Hit{}, false
 	}
 
 	return d.NNVector(termVector, k, minFq, θ)
 }
 
 // NN returns k nearest neighbours in vector space for a given vector.
-func (d *dict) NNVector(termVector []float32, k, minFq int, θ float32) ([]Hit, bool, []float32) {
+func (d *dict) NNVector(termVector []float32, k, minFq int, θ float32) ([]Hit, bool) {
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 
@@ -186,7 +186,7 @@ func (d *dict) NNVector(termVector []float32, k, minFq int, θ float32) ([]Hit, 
 		}
 	}
 
-	return terms, true, termVector
+	return terms, true
 }
 
 // Vector returns vector for a given term

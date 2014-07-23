@@ -50,7 +50,7 @@ func Handler(ws Service, max, minFq int, minSimilarity float32) http.HandlerFunc
 		}
 
 		// similar will be empty if !ok. this is fine.
-		similar, _, _ := ws.NN(tag, max, minFq, minSimilarity)
+		similar, _ := ws.NN(tag, max, minFq, minSimilarity)
 
 		type APIResult struct {
 			Tag     string `json:"tag"`

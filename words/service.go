@@ -10,8 +10,8 @@ import (
 // a vector representation of the query term.
 type Service interface {
 	Vector(term string) ([]float32, bool)
-	NN(term string, k, minfq int, θ float32) ([]Hit, bool, []float32)
-	NNVector(queryVector []float32, k, minfq int, θ float32) ([]Hit, bool, []float32)
+	NN(term string, k, minfq int, θ float32) ([]Hit, bool)
+	NNVector(queryVector []float32, k, minfq int, θ float32) ([]Hit, bool)
 }
 
 // NewService is a similarity function backed by word2vec vectors

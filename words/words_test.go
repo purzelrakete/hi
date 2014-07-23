@@ -50,7 +50,7 @@ func TestNearestNeighbours(t *testing.T) {
 		t.Fatalf("could not load dictionary: %s", err.Error())
 	}
 
-	actual, ok, _ := d.NN("minimalhouse", 2, 0, -1)
+	actual, ok := d.NN("minimalhouse", 2, 0, -1)
 	if !ok {
 		t.Fatalf("could not find neighbours")
 	}
@@ -80,17 +80,12 @@ func TestReturnsVectors(t *testing.T) {
 		t.Fatalf("could not load dictionary: %s", err.Error())
 	}
 
-	actual, ok, queryVector := d.NN("minimalhouse", 2, 0, -1)
+	actual, ok := d.NN("minimalhouse", 2, 0, -1)
 	if !ok {
 		t.Fatalf("could not find nearest neighbours")
 	}
 
-	expectedVector := []float32{1.0, 0.0}
-	if !reflect.DeepEqual(expectedVector, queryVector) {
-		t.Fatalf("expected %v query vec but got %v", expectedVector, queryVector)
-	}
-
-	expectedVector = []float32{1.0, 0.1}
+	expectedVector := []float32{1.0, 0.1}
 	if !reflect.DeepEqual(expectedVector, actual[0].Vector) {
 		t.Fatalf("expected %v but got %v", expectedVector, actual[0].Vector)
 	}
