@@ -12,6 +12,18 @@ type Service func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32
 
 // NewService is a similarity function backed by word2vec vectors
 func NewService(modelPath string) (Service, error) {
+	words, err := LoadWords(modelPath)
+	if err != nil {
+		return nil, fmt.Errorf("could not get words: %s", err.Error())
+	}
+
+	return func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32) {
+		return words.NN(term, k, minfq, θ)
+	}, nil
+}
+
+// LoadWords is a similarity function backed by word2vec vectors
+func LoadWords(modelPath string) (Words, error) {
 	resp, err := http.Get(modelPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get %s: %s", modelPath, err.Error())
@@ -28,7 +40,5 @@ func NewService(modelPath string) (Service, error) {
 		return nil, fmt.Errorf("could not get words: %s", err.Error())
 	}
 
-	return func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32) {
-		return words.NN(term, k, minfq, θ)
-	}, nil
+	return words, nil
 }
