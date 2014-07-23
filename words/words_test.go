@@ -95,3 +95,4 @@ func TestReturnsVectors(t *testing.T) {
 		t.Fatalf("expected %v but got %v", expectedVector, actual[0].Vector)
 	}
 }
+

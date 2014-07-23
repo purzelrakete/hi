@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"container/heap"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -12,6 +13,7 @@ import (
 type Words interface {
 	Vector(term string) ([]float32, bool)
 	NN(term string, k, fq int, θ float32) ([]Hit, bool, []float32)
+	NNVector(vector []float32, k, fq int, θ float32) ([]Hit, bool, []float32)
 	Len() int
 }
 
@@ -119,6 +121,11 @@ func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool, []float32
 		return []Hit{}, false, []float32{}
 	}
 
+	return d.NNVector(termVector, k, minFq, θ)
+}
+
+// NN returns k nearest neighbours in vector space for a given vector.
+func (d *dict) NNVector(termVector []float32, k, minFq int, θ float32) ([]Hit, bool, []float32) {
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 
@@ -130,13 +137,17 @@ func (d *dict) NN(term string, k, minFq int, θ float32) ([]Hit, bool, []float32
 			fq  = d.frequencies[i]
 		)
 
-		if term == t || fq < minFq {
-			continue
-		}
+ 		if fq < minFq {
+ 			continue
+ 		}
+ 
+ 		if reflect.DeepEqual(v, termVector) {
+ 			continue
+ 		}
 
 		similarity, err := cosine(termVector, v)
 		if err != nil {
-			panic(fmt.Sprintf("could not compare %s with %s.", term, t))
+			panic(fmt.Sprintf("could not compare %l with %l.", termVector, t))
 		}
 
 		if similarity < θ {

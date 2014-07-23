@@ -8,22 +8,23 @@ import (
 
 // Service returns a list of terms similar to the given one, bool ok, and
 // a vector representation of the query term.
-type Service func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32)
+type Service interface {
+	NN(term string, k, minfq int, θ float32) ([]Hit, bool, []float32)
+	NNVector(queryVector []float32, k, minfq int, θ float32) ([]Hit, bool, []float32)
+}
 
 // NewService is a similarity function backed by word2vec vectors
 func NewService(modelPath string) (Service, error) {
-	words, err := LoadWords(modelPath)
+	words, err := loadWords(modelPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get words: %s", err.Error())
 	}
 
-	return func(term string, k, minfq int, θ float32) ([]Hit, bool, []float32) {
-		return words.NN(term, k, minfq, θ)
-	}, nil
+	return words, nil
 }
 
-// LoadWords is a similarity function backed by word2vec vectors
-func LoadWords(modelPath string) (Words, error) {
+// loadWords retrieves the model from a url and constructs Words
+func loadWords(modelPath string) (Words, error) {
 	resp, err := http.Get(modelPath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get %s: %s", modelPath, err.Error())
