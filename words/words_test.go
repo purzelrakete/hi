@@ -67,27 +67,3 @@ func TestNearestNeighbours(t *testing.T) {
 	}
 }
 
-func TestReturnsVectors(t *testing.T) {
-	vectors := []string{
-		"2 2",
-		"minimalhouse 10 1.0 0.0",
-		"house 12 1.0 0.1",
-	}
-
-	r := bufio.NewReader(strings.NewReader(strings.Join(vectors, "\n")))
-	d, err := New(r)
-	if err != nil {
-		t.Fatalf("could not load dictionary: %s", err.Error())
-	}
-
-	actual, ok := d.NN("minimalhouse", 2, 0, -1)
-	if !ok {
-		t.Fatalf("could not find nearest neighbours")
-	}
-
-	expectedVector := []float32{1.0, 0.1}
-	if !reflect.DeepEqual(expectedVector, actual[0].Vector) {
-		t.Fatalf("expected %v but got %v", expectedVector, actual[0].Vector)
-	}
-}
-

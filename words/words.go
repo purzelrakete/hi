@@ -22,7 +22,6 @@ type Hit struct {
 	Term       string    `json:"term"`
 	Frequency  int       `json:"frequency"`
 	Similarity float32   `json:"similarity"`
-	Vector		 []float32 `json:"vector"`
 }
 
 // New creates a dictionary given a word vector file.
@@ -177,12 +176,10 @@ func (d *dict) NNVector(termVector []float32, k, minFq int, θ float32) ([]Hit, 
 	terms := make([]Hit, length)
 	for i := 0; i < length; i++ {
 		item := heap.Pop(pq).(*Item)
-		off := item.ordinal * d.dims
 		terms[length-i-1] = Hit{
 			Term:       d.terms[item.ordinal],
 			Similarity: item.priority,
 			Frequency:  d.frequencies[item.ordinal],
-			Vector: d.buf[off : off+d.dims],
 		}
 	}
 
