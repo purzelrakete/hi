@@ -13,7 +13,6 @@
 """
 
 import math
-import operator
 import os
 
 def classify(code, model):

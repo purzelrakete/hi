@@ -1,29 +1,3 @@
-# Idiot Bayes Classifier
-
-Idiot Bayes classifer written during a train trip to Berlin. Was listening to
-a CCC podcast about neural networks, and they were talking about naive bayes.
-Wanted to see if I could remember how to do it.
-
-Classify programm code into { go, notgo }.
-
-# Installation
-
-Run the following:
-
-```bash:
-make deps
-```
-
-Tests should subsequently be green:
-
-```bash:
-make test
-```
-
-## Correctness
-
-Some issues to watch out for.
-
 # Understanding IEEE 754 double precision floats
 
 IEEE 754 double precision floats are designed to represent Real numbers such
@@ -95,7 +69,7 @@ but we cut it off after 52 bits, thereby losing precision.
 Fundamentally this because numbers are represented as a subset of the
 Rationals a/b
 
-    2 ^ exp / (1 + (sig / 2.0 ^ 52))
+    2 ^ exp + (2 ^ exp * sig / 2.0 ^ 52))
 
 and consequently, many numbers can only be estimated, even fractions such as
 1/10.
@@ -138,4 +112,3 @@ end
 ## Footnotes
 
 [0] http://steve.hollasch.net/cgindex/coding/ieeefloat.html.
-
