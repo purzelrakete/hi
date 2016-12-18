@@ -1,3 +1,5 @@
+![My weekend](https://imgs.xkcd.com/comics/collatz_conjecture.png)
+
 # An exploration of the 3n  + 1 conjecture
 
 Consider the following operation on an arbitrary positive integer:
@@ -11,3 +13,5 @@ next.
 
 The 3n + 1 conjecture is: This process will eventually reach the number 1,
 regardless of which positive integer is chosen initially.
+
+![Tree](https://raw.githubusercontent.com/purzelrakete/hi/master/3nplus1/tree.dot.png)
