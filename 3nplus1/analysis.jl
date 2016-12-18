@@ -30,7 +30,7 @@ df = DataFrame(y = [f_len(x) for x in 2:10_000])
 plot(df, y = :y, Geom.point, theme)
 
 # more apparent structure. let's take a look at the histogram of
-# sequence lenghts to get a feeling for the distribution. careful, this
+# sequence lengths to get a feeling for the distribution. careful, this
 # takes about 2 minutes to complete with the current implementation as
 # we're looking at the top 10MM starting numbers:
 df = DataFrame(y = [f_len(x) for x in 2:10_000_000])
@@ -57,7 +57,7 @@ plot(layer(df, x = :y, Geom.density, theme, order = 1),
 # since the mean distance to the root should increase.
 
 # left branches starting from 1-right branch, log scale
-df = DataFrame(y = doubles_left_roots(1, 50))
+df = DataFrame(y = series_left_roots(1, 50))
 plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 
 # these left branches are successively * 4 + 1. looking at this in Base
@@ -68,20 +68,20 @@ plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 
 # what about all of those new roots? what sorts of left
 # branching behaviour do these series have? eg 5, 21, 85, 341 etc. 5:
-df = DataFrame(y = doubles_left_roots(5, 50))
+df = DataFrame(y = series_left_roots(5, 50))
 plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 
 # this one also looks like * 4 + 1.  however this one starts at 3. so shifting
 # 1 left and adding 1 will produce 3111etc. no we can't just multiply by 3
 # to make this 333etc. instead we have to ((4^n - 1) / 3) + 2 * 4^n. let's
 # subtract the two series to find the remaining quadratic term:
-@assert (doubles_left_roots(1, 52) - doubles_left_roots(5, 50)) == [2 * 4^n for n in 0:24]
+@assert (series_left_roots(1, 52) - series_left_roots(5, 50)) == [2 * 4^n for n in 0:24]
 
 # interestingly, 21 may not have left branches:
-length(doubles_left_roots(21, 500))
+length(series_left_roots(21, 500))
 
 # 85?
-df = DataFrame(y = doubles_left_roots(85, 50))
+df = DataFrame(y = series_left_roots(85, 50))
 plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 
 # again, * 4 + 1. 113 in base 4 is 1301:
@@ -90,9 +90,23 @@ plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 # step 1 -> 13011   = ((4^1 - 1) / 3) + 113 * 4^1
 # step 2 -> 130111  = ((4^2 - 1) / 3) + 113 * 4^2
 # step 3 -> 1301111 = ((4^3 - 1) / 3) + 113 * 4^3 = 7253
-@assert doubles_left_roots(85, 50) == [BigInt(((BigInt(4)^n - 1) / 3) + 113 * BigInt(4)^n) for n in 0:24]
 
-# XXX(rk): verify in a different way again.
+# closed formula as above:
+closed(y, n) = BigInt(((BigInt(4)^n - 1) / 3) + y * BigInt(4)^n)
+
+# let's try all secondary series starting off the primary (1) series and see if
+# the same closed form works for their tertiary series.
+tertiaries = [(x, series_left_roots(x, 50)) for x in series_left_roots(1, 50)]
+
+# it appears that every third root here does not have left roots. let's filter
+# these out and test against closed form.
+for (parent, tertiary) = filter(x -> !isempty(x[2]), tertiaries)
+  @assert tertiary == [closed(tertiary[1], n) for n in 0:24]
+end
+
+# Yes. they do.
+
+# XXX(rk): verify
 #
 # show that all right descendings series starting at a unique odd number
 # do not have any overlapping numbers in them. this would mean that the entire

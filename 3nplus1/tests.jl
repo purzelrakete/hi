@@ -26,9 +26,9 @@ include("viz.jl")
 
 # left forward branches on doubling series 2, 4, 8, 16, etc. see the graphviz
 # output to follow this example.
-@test last(doubles(2, 100)) != 0
-@test doubles_left_roots(2, 10) == [5, 21, 85, 341]
-@test typeof(last(doubles_left_roots(2, 5))) == BigInt
+@test last(series(2, 100)) != 0
+@test series_left_roots(2, 10) == [5, 21, 85, 341]
+@test typeof(last(series_left_roots(2, 5))) == BigInt
 
 # trees
 @test Node(123).value == 123

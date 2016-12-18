@@ -44,12 +44,12 @@ hasleft(n::Number)::Bool = (n - 1) % 3 == 0 && # be integral
 
 # looking at the series formed by right branches starting from a node q,
 # we will find it to be in the form q*2^i.
-doubles(q::Int64, depth::Int64 = 10) = [q * BigInt(2)^i for i in 0:depth]
+series(q::Number, depth::Int64 = 10) = [q * BigInt(2)^i for i in 0:depth]
 
-# following a doubles series, what are the left branches that are immediate
+# following a series, what are the left branches that are immediate
 # children of nodes on the double series?
-doubles_left_roots(root::Int64, depth = 10) = [
-  left(x) for x in doubles(root, depth) if hasleft(x) ]
+series_left_roots(root::Number, depth::Int64 = 10) = [
+  left(x) for x in series(root, depth) if hasleft(x) ]
 
 # returns the forward tree
 forward(; maxdepth = 10) = forward(1, 0, maxdepth)
