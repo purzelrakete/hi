@@ -97,14 +97,18 @@ closed(y, n) = BigInt(((BigInt(4)^n - 1) / 3) + y * BigInt(4)^n)
 # let's try all secondary series starting off the primary (1) series and see if
 # the same closed form works for their tertiary series.
 tertiaries = [(x, series_left_roots(x, 50)) for x in series_left_roots(1, 50)]
+filtered = filter(x -> !isempty(x[2]), tertiaries)
 
 # it appears that every third root here does not have left roots. let's filter
 # these out and test against closed form.
-for (parent, tertiary) = filter(x -> !isempty(x[2]), tertiaries)
+for (parent, tertiary) =  filtered
   @assert tertiary == [closed(tertiary[1], n) for n in 0:24]
 end
 
-# Yes. they do.
+# Yes. they do. Plot them all in log scale:
+all = [[i, log2(parent)] for (parent, series) in filtered for i in series]
+df = DataFrame(reduce(hcat, all)')
+plot(df, y = :x1, Geom.line, color = :x2, Scale.y_log10, theme)
 
 # XXX(rk): verify
 #
