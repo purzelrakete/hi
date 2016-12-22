@@ -105,8 +105,8 @@ for (parent, tertiary) =  filtered
   @assert tertiary == [closed(tertiary[1], n) for n in 0:24]
 end
 
-# Yes. they do. Plot them all in log scale:
-all = [[i, log2(parent)] for (parent, series) in filtered for i in series]
+# yes, closed from matches the data. plot them all in log scale:
+all = [[root, log2(parent)] for (parent, series) in filtered for root in series]
 df = DataFrame(reduce(hcat, all)')
 plot(df, y = :x1, Geom.line, color = :x2, Scale.y_log10, theme)
 
@@ -142,7 +142,18 @@ function smash()
     return
   end
 
-  if p*2^n == q*2^m
+  # an optimization to only use bigint if needed. 64 signed bits, so up to 2^62.
+  # can be scaled by up to 100 ~= 2^7 so let's say up to 55 is ok. use bigint
+  # otherwise.
+  if m > 55 || n > 55
+    lhs = p * BigInt(2)^n
+    rhs = q * BigInt(2)^m
+  else
+    lhs = p * 2^n
+    rhs = q * 2^m
+  end
+
+  if lhs == rhs
     error("$p*2^$n == $q*2^$m")
   end
 end
