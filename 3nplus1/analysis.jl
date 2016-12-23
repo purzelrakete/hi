@@ -12,6 +12,23 @@ theme = Theme(
   background_color = colorant"black",
   default_point_size = 0.5mm)
 
+# Terminology
+# -----------
+#
+# - the reverse tree starts at 1. right branches are always n / 2 predecessors,
+#   and left branches are always 3n + 1 predecessors. see the png.
+# - a series is in the form p2^n, where p is odd.
+# - a series has a single root, p, which is always an odd number.
+# - a series can be found in the reverse tree by following down right from an
+#   odd root.
+# - a series may have left roots. these are the left branches of that series.
+# - the left roots of a series are given as (roots, parent), where parent is
+#   the parent series, identified by the root p.
+#
+
+# Basic long term behaviour
+# -------------------------
+#
 # let's have a look at a single collatz sequence starting at 2016. these
 # sequences are also known as hailstone sequences, because of the way hailstones
 # are formed in the clouds: they keep drifting up and back down, until finally
@@ -36,14 +53,15 @@ plot(df, y = :y, Geom.point, theme)
 df = DataFrame(y = [f_len(x) for x in 2:10_000_000])
 plot(df, x = :y, Geom.histogram, theme)
 
-# the histogram looks a little bit bimodal. let's have a look at the density:
+# let's have a look at the density:
 plot(df, x = :y, Geom.density, theme)
 
-# let's have a closer look, maybe binning is hiding some information:
+# the histogram looks a little bit bimodal. let's have a closer look, maybe
+# binning is hiding some information:
 plot(df, x = :y, Geom.histogram(bincount = 1000), theme)
 
-# well that looks kind of recursive. at any rate, looks like it could be
-# approaching a gamma distribution. let's try to fit it:
+# looks like some structure. at any rate, it's a right skewed distribution.
+# maybe it could be approaching a gamma distribution. let's try to fit it:
 gamma = fit_mle(Gamma, df[:y])
 gamma_pdf = pdf(gamma, 1:700)
 plot(layer(df, x = :y, Geom.density, theme, order = 1),
@@ -52,22 +70,29 @@ plot(layer(df, x = :y, Geom.density, theme, order = 1),
 
 # we could now look at the KL divergence between the data and the fit, and try
 # to find the best distribution. I WILL NOT.
-#
-# ok, but surely sequence lengths will grow as we get extremely large numbers,
-# since the mean distance to the root should increase.
 
-# left branches starting from 1-right branch, log scale
+# ok, but surely sequence lengths will grow as we get extremely large numbers,
+# since the mean distance to the root should increase.  let's look at how the
+# distribution changes as we get up  higher (will take ages):
+all = [map(x -> [f_len(x), m], [1:m;]) for m in map(x -> 10^x, 4:7)]
+df = DataFrame(reduce(hcat, reduce(append!, all))')
+plot(df, x = :x1, color = :x2, Geom.density, theme)
+
+# Left Roots
+# ----------
+#
+# left roots starting from p = 1 series, log scale
 df = DataFrame(y = series_left_roots(1, 50))
 plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 
-# these left branches are successively * 4 + 1. looking at this in Base
+# these left roots are successively * 4 + 1. looking at this in Base
 # 4, we can see it is the same as successively shifting left and adding
 # 1, eg creating a string of 1's. multiplying these by 3 and adding 1
 # yields 4^n. So the closed from for this is (4^n-1)/3. let's confirm:
 @assert [log2(n * 3 + 1) / 2 for n in df[:y]] == [2.0:25.0;]
 
-# what about all of those new roots? what sorts of left
-# branching behaviour do these series have? eg 5, 21, 85, 341 etc. 5:
+# what about all of those new p's? what sorts of left
+# branching behaviour do these series have? eg p = 5, 21, 85, 341 etc. 5:
 df = DataFrame(y = series_left_roots(5, 50))
 plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 
@@ -77,7 +102,7 @@ plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 # subtract the two series to find the remaining quadratic term:
 @assert (series_left_roots(1, 52) - series_left_roots(5, 50)) == [2 * 4^n for n in 0:24]
 
-# interestingly, 21 may not have left branches:
+# interestingly, series p = 21 may not have left branches:
 length(series_left_roots(21, 500))
 
 # 85?
@@ -96,13 +121,13 @@ closed(y, n) = BigInt(((BigInt(4)^n - 1) / 3) + y * BigInt(4)^n)
 
 # let's try all secondary series starting off the primary (1) series and see if
 # the same closed form works for their tertiary series.
-tertiaries = [(x, series_left_roots(x, 50)) for x in series_left_roots(1, 50)]
-filtered = filter(x -> !isempty(x[2]), tertiaries)
+roots = [(x, series_left_roots(x, 50)) for x in series_left_roots(1, 50)]
+filtered = filter(x -> !isempty(x[2]), roots)
 
-# it appears that every third root here does not have left roots. let's filter
+# it appears that every third series here does not have left roots. let's filter
 # these out and test against closed form.
-for (parent, tertiary) =  filtered
-  @assert tertiary == [closed(tertiary[1], n) for n in 0:24]
+for (parent, roots) =  filtered
+  @assert roots == [closed(roots[1], n) for n in 0:24]
 end
 
 # yes, closed from matches the data. plot them all in log scale:
@@ -162,3 +187,22 @@ end
 for x in 1:1_000_000_000
   smash()
 end
+
+# ok. what about this: if every odd number is present in the reverse graph, then
+# what would that mean?
+#
+# 1. all series are in the from p2^n, where p is odd. so except for when n = 0,
+#    the numbers must all be even since we're multiplying them with 2's. the
+#    only odd number is the root of the series. so any odd number in the reverse
+#    graph must be the root of a series.
+#
+# 2. were interested to know if the reverse graph includes all natural numbers,
+#    because then any number would be part of a tree starting with 1.
+#    well in the best case, we would have all odd numbers being a root. if this
+#    were true, would we then have all numbers in the tree? in other words, can
+#    every natural number be expressed as p2^n where p is odd? and p and n are
+#    free.
+#
+#    well, we've already  covered all the odd numbers, they're in.
+#    we also have all the even numbers, since we can keep halving it to reach
+#    either an odd number (exists), or 1, which is the 1 series.
