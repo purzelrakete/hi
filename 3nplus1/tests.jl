@@ -24,6 +24,13 @@ include("viz.jl")
 @test f_len(20) == length(f(20))
 @test f_len(63_728_127) == 950
 
+# list lengths with memo
+memo = Dict{Number,Number}()
+@test f_len(2; memo = memo) == 2
+@test f_len(8, memo = memo) == length(f(8))
+@test f_len(20; memo = memo) == length(f(20))
+@test f_len(63_728_127; memo = memo) == 950
+
 # left forward branches on doubling series 2, 4, 8, 16, etc. see the graphviz
 # output to follow this example.
 @test last(series(2, 100)) != 0

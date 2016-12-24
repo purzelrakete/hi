@@ -19,20 +19,32 @@ function f(n::Int64, previous)
   end
 end
 
-# number of steps to 1. exploit FACTS.
-function f_len(n)::Int64
-  i = 1
+# number of steps to 1. exploit algebra, memoize across multiple calls.
+function f_len(n; memo::Dict{Number,Number} = Dict{Number,Number}())::Int64
+  if n < 2
+    error("only natural numbers > 1 are allowed.")
+  end
 
-  while 1 != if n % 2 == 0 # even
-      i += 1
-      n = n / 2
+  len = 1
+  n_cur = n
+
+  while true
+    if n_cur == 1
+      memo[n] = len
+      break
+    elseif haskey(memo, n_cur)
+      len += memo[n_cur] - 1
+      break
+    elseif n_cur % 2 == 0 # even
+      len += 1
+      n_cur = n_cur >> 1 # type stability
     else # odd number * 3 is odd (odd * odd). odd + 1 -> even. take 2 steps:
-      i += 2
-      n = (n * 3 + 1) / 2
+      len += 2
+      n_cur = (n_cur * 3 + 1) >> 1 # type stability
     end
   end
 
-  i
+  len
 end
 
 # forward
