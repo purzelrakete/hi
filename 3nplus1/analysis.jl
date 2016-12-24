@@ -26,7 +26,7 @@ theme = Theme(
 #   the parent series, identified by the root p.
 #
 
-# Basic long term behaviour
+# Long term behaviour
 # -------------------------
 #
 # let's have a look at a single collatz sequence starting at 2016. these
@@ -41,15 +41,15 @@ plot(df, y = :y, Geom.line, theme)
 # peaks:
 plot(df, y = :y, Geom.point, theme)
 
-# now let's have a look at the sequence lengths, eg the number of steps it
-# takes to get to one, given starting numbers up to 10k:
+# now let's have a look at the sequence lengths, eg the number of steps it takes
+# to get to one, given starting numbers up to 10k:
 df = DataFrame(y = [f_len(x) for x in 2:10_000])
 plot(df, y = :y, Geom.point, theme)
 
-# more apparent structure. let's take a look at the histogram of
-# sequence lengths to get a feeling for the distribution. careful, this
-# takes about 2 minutes to complete with the current implementation as
-# we're looking at the top 10MM starting numbers:
+# more apparent structure. let's take a look at the histogram of sequence
+# lengths to get a feeling for the distribution. careful, this takes about 2
+# minutes to complete with the current implementation as we're looking at the
+# top 10MM starting numbers:
 df = DataFrame(y = [f_len(x) for x in 2:10_000_000])
 plot(df, x = :y, Geom.histogram, theme)
 
@@ -74,8 +74,9 @@ plot(layer(df, x = :y, Geom.density, theme, order = 1),
 # ok, but surely sequence lengths will grow as we get extremely large numbers,
 # since the mean distance to the root should increase.  let's look at how the
 # distribution changes as we get up  higher (will take ages):
-all = [map(x -> [f_len(x), m], [1:m;]) for m in map(x -> 10^x, 4:7)]
-df = DataFrame(reduce(hcat, reduce(append!, all))')
+maxvals = map(x -> 10^x, 4:7)
+all = reduce(append!, [map(x -> [f_len(x), m], 1:m) for m in maxvals])
+df = DataFrame(reduce(hcat, all)')
 plot(df, x = :x1, color = :x2, Geom.density, theme)
 
 # Left Roots
@@ -135,6 +136,9 @@ all = [[root, log2(parent)] for (parent, series) in filtered for root in series]
 df = DataFrame(reduce(hcat, all)')
 plot(df, y = :x1, Geom.line, color = :x2, Scale.y_log10, theme)
 
+# Is the reverse tree an ordering of the natural numbers?
+# -------------------------------------------------------
+#
 # XXX(rk): verify
 #
 # show that all right descendings series starting at a unique odd number
