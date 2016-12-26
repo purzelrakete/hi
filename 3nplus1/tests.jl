@@ -25,11 +25,17 @@ include("viz.jl")
 @test f_len(63_728_127) == 950
 
 # list lengths with memo
-memo = Dict{Number,Number}()
+memo = Dict{Int64,Int64}()
 @test f_len(2; memo = memo) == 2
 @test f_len(8, memo = memo) == length(f(8))
 @test f_len(20; memo = memo) == length(f(20))
 @test f_len(63_728_127; memo = memo) == 950
+
+# correct memo values
+@test memo[2] == 2
+@test memo[8] == length(f(8))
+@test memo[20] == length(f(20))
+@test memo[63_728_127] == 950
 
 # left forward branches on doubling series 2, 4, 8, 16, etc. see the graphviz
 # output to follow this example.
@@ -58,3 +64,8 @@ memo = Dict{Number,Number}()
 
 # viz. raises exception when the dotfile cannot be parsed.
 png(forward(maxdepth = 15))
+
+# DataFrames
+@assert typeof(df_f_len(2:5)) == DataFrames.DataFrame
+@assert df_f_len(2:5) == DataFrame(y = [2, 8, 3, 6])
+@assert df_f_len_many([2:3, 4:5]) == DataFrame(y = [2, 8, 3, 6], color = [2, 3, 4, 5])

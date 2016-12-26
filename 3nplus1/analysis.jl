@@ -12,9 +12,6 @@ theme = Theme(
   background_color = colorant"black",
   default_point_size = 0.5mm)
 
-# a shared cache of sequence lengths
-memo = Dict{Number,Number}()
-
 # Terminology
 # -----------
 #
@@ -46,12 +43,12 @@ plot(df, y = :y, Geom.point, theme)
 
 # now let's have a look at the sequence lengths, eg the number of steps it takes
 # to get to one, given starting numbers up to 10k:
-df = DataFrame(y = [f_len(x; memo = memo) for x in 2:10_000])
+@time df = df_f_len(2:10_000)
 plot(df, y = :y, Geom.point, theme)
 
 # more apparent structure. let's take a look at the histogram of sequence
 # lengths to get a feeling for the distribution:
-df = DataFrame(y = [f_len(x, memo = memo) for x in 2:10_000_000])
+@time df = df_f_len(2:10_000_000)
 plot(df, x = :y, Geom.histogram, theme)
 
 # let's have a look at the density:
@@ -73,12 +70,10 @@ plot(layer(df, x = :y, Geom.density, theme, order = 1),
 # to find the best distribution. I WILL NOT.
 
 # ok, but surely sequence lengths will grow as we get extremely large numbers,
-# since the mean distance to the root should increase.  let's look at how the
-# distribution changes as we get up  higher (will take ages):
-maxvals = map(x -> 10^x, 4:7)
-all = reduce(append!, [map(x -> [f_len(x, memo = memo), m], 2:m) for m in maxvals])
-df = DataFrame(reduce(hcat, all)')
-plot(df, x = :x1, color = :x2, Geom.density, theme)
+# since the mean distance to the root should increase. let's look at how the
+# distribution changes as we get up  higher:
+@time df = df_f_len_many([2:1_000, 2:10_000, 2:100_000, 2:1_000_000, 2:10_000_000])
+plot(df, x = :y, color = :color, Geom.density, theme)
 
 # Left Roots
 # ----------

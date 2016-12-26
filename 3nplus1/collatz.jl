@@ -1,3 +1,5 @@
+using DataFrames
+
 # next number in the series
 function succ(n::Int64)::Int64
   if n < 2
@@ -20,7 +22,7 @@ function f(n::Int64, previous)
 end
 
 # number of steps to 1. exploit algebra, memoize across multiple calls.
-function f_len(n; memo::Dict{Number,Number} = Dict{Number,Number}())::Int64
+function f_len(n::Int64; memo::Dict{Int64,Int64} = Dict{Int64,Int64}())::Int64
   if n < 2
     error("only natural numbers > 1 are allowed.")
   end
@@ -42,6 +44,10 @@ function f_len(n; memo::Dict{Number,Number} = Dict{Number,Number}())::Int64
       len += 2
       n_cur = (n_cur * 3 + 1) >> 1 # type stability
     end
+  end
+
+  if n != n_cur
+    memo[n] = len
   end
 
   len
@@ -75,4 +81,20 @@ function forward(root::Int64, depth::Int64, maxdepth::Int64)::Tree
       forward(right(root), depth + 1, maxdepth)
     )
   end
+end
+
+# a shared cache of sequence lengths
+function df_f_len(range::Range{Int64})
+  memo = Dict{Int64,Int64}()
+  DataFrame(y = [f_len(x, memo = memo) for x in range])
+end
+
+# multiple ranges
+function df_f_len_many(ranges)
+  df, memo = DataFrame(), Dict{Int64,Int64}()
+  for range in ranges
+    df = vcat(df, DataFrame(y = [f_len(x; memo = memo) for x in range], color = last(range)))
+  end
+
+  df
 end
