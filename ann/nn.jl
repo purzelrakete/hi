@@ -1,7 +1,7 @@
 using DataFrames
 
 # x'W
-type LinearNoBias
+type LinearNoBias <: Model
   weights::Matrix{Float64}
   LinearNoBias() = new(Matrix())
 end

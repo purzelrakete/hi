@@ -1,8 +1,11 @@
 using DataFrames
 using Distributions
 
+# a way of splitting the dataset into test and train and tuning partitions.
+abstract Partitioner
+
 # random k folds
-immutable RandomKFolds
+immutable RandomKFolds <: Partitioner
   folds::Vector{Vector{Int}}
   n_folds::Int
 end
@@ -15,6 +18,23 @@ length(cv::RandomKFolds) = cv.n_folds
 Base.start(cv::RandomKFolds) = 1
 Base.next(cv::RandomKFolds, k) = ([k, cvsplit(cv, k)...], k + 1)
 Base.done(cv::RandomKFolds, k) = k - 1 == cv.n_folds
+
+# train on a data partitioning scheme. do prediction on the held out sets and
+# returns a single dataframe containing the fold id that each instance was in.
+function cvpredict{T <: Model}(kind::Type{T}, folds::Partitioner, df::DataFrame)
+  Yp = DataFrame()
+  models = []
+  for (k, idx_test, idx_train) in folds
+      model = train(kind, df[idx_train, :])
+      predictions = prediction(model, df[idx_test, :])
+      predictions[:fold] = k
+
+      Yp = [Yp; predictions]
+      models = [models; model]
+  end
+
+  Yp, models
+end
 
 # split into test and train set indices for fold k
 function cvsplit(cv::RandomKFolds, k::Int)
