@@ -2,25 +2,32 @@ using DataFrames
 using Distributions
 
 # random k folds
-immutable RandomFolds
+immutable RandomKFolds
   folds::Vector{Vector{Int}}
-  RandomFolds() = new(Vector{Int}[])
+  n_folds::Int
+end
+
+# split into test and train set indices for fold k
+function cvsplit(cv::RandomKFolds, k::Int)
+  test  = cv.folds[k]
+  train = cv.folds[setdiff(1:cv.n_folds, k)]
+  [test, reduce(vcat, train)]
 end
 
 # returns random k-folds over the dataframe.
-function cv(::Type{RandomFolds}, df::DataFrame, nfolds::Int = 10)
+function cv(::Type{RandomKFolds}, df::DataFrame, nfolds::Int = 10)
   nrows, _ = size(df)
   sizes = foldsizing(nrows, nfolds)
-  folds = RandomFolds()
+  folds = Vector{Int}[]
 
   population = [1:nrows;]
   for n in sizes
     idxs = sample(1:length(population), n; replace = false)
-    append!(folds.folds, [population[idxs]])
+    append!(folds, [population[idxs]])
     deleteat!(population, sort(idxs))
   end
 
-  folds
+  RandomKFolds(folds, length(folds))
 end
 
 # returns a vector of fold sizes that sum to nrows

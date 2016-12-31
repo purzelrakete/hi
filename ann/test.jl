@@ -41,12 +41,18 @@ end
 
 # folds basic properties
 for i in 1:nrow(df)
-  folds = cv(RandomFolds, df, i).folds
+  folds = cv(RandomKFolds, df, i).folds
   flattened = reduce(vcat, folds)
   @test length(flattened) == nrow(df)
   @test length(Set(flattened)) == length(flattened)
   @test length(folds) == i
 end
+
+# cv splitting
+folds = RandomKFolds([[1, 2], [3, 4], [5, 6]], 3)
+@test cvsplit(folds, 1) == [[1, 2], [3, 4, 5, 6]]
+@test cvsplit(folds, 2) == [[3, 4], [1, 2, 5, 6]]
+@test cvsplit(folds, 3) == [[5, 6], [1, 2, 3, 4]]
 
 # utils
 @test bound([-1.0, 257.0, 12.0]) == [0.0, 256.0, 12.0]
