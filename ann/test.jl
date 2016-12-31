@@ -53,6 +53,7 @@ folds = RandomKFolds([[1, 2], [3, 4], [5, 6]], 3)
 @test cvsplit(folds, 1) == [[1, 2], [3, 4, 5, 6]]
 @test cvsplit(folds, 2) == [[3, 4], [1, 2, 5, 6]]
 @test cvsplit(folds, 3) == [[5, 6], [1, 2, 3, 4]]
+@test collect(folds) == [[i, cvsplit(folds, i)...] for i in 1:3]
 
 # utils
 @test bound([-1.0, 257.0, 12.0]) == [0.0, 256.0, 12.0]

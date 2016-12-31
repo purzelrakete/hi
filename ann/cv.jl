@@ -7,6 +7,15 @@ immutable RandomKFolds
   n_folds::Int
 end
 
+# support collect
+import Base.length
+length(cv::RandomKFolds) = cv.n_folds
+
+# iteration
+Base.start(cv::RandomKFolds) = 1
+Base.next(cv::RandomKFolds, k) = ([k, cvsplit(cv, k)...], k + 1)
+Base.done(cv::RandomKFolds, k) = k - 1 == cv.n_folds
+
 # split into test and train set indices for fold k
 function cvsplit(cv::RandomKFolds, k::Int)
   test  = cv.folds[k]
