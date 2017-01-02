@@ -114,7 +114,7 @@ plot(df, y = :y, Geom.line, Scale.y_log10, theme)
 # step 3 -> 1301111 = ((4^3 - 1) / 3) + 113 * 4^3 = 7253
 
 # closed formula as above:
-closed(y, n) = BigInt(((BigInt(4)^n - 1) / 3) + y * BigInt(4)^n)
+closed(p, n) = BigInt(((BigInt(4)^n - 1) / 3) + p * BigInt(4)^n)
 
 # let's try all secondary series starting off the primary (1) series and see if
 # the same closed form works for their tertiary series.

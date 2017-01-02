@@ -1,7 +1,7 @@
 using DataFrames
 using Distributions
 
-# a way of splitting the dataset into test and train and tuning partitions.
+# splits dataset into test and train partitions.
 abstract Partitioner
 
 # random k folds

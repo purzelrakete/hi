@@ -10,6 +10,7 @@ function bound(a::Vector{Float64}; min = 0.0, max = 256.0)
 end
 
 # sample rows from a dataframe
-function sample_df(df::DataFrame, size::Int = 1)
-  df[sample(1:nrow(df), size), :]
-end
+sample_df(df::DataFrame, size::Int = 1) = df[sample(1:nrow(df), size), :]
+
+# maths
+sigmoid(x) = 1 ./ (1 + exp(-x))

@@ -1,12 +1,17 @@
-# core shared types
+using DataFrames
 
-# a model for prediction and inference.
+# a parametric model
 abstract Model
+likelihood(model::Model, df::DataFrame) = [likelihood(model, x) for x in df[:image]]
+prediction(model::Model, df::DataFrame) = [df DataFrame(prediction = indmax.(likelihood(model, df)) - 1)]
 
-# include
+# type for the list of all pixels in an image
+typealias Pixels Vector{Float64}
+
+# includes
 include("cv.jl")
 include("data.jl")
 include("images.jl")
 include("metrics.jl")
-include("nn.jl")
+include("models.jl")
 include("utils.jl")

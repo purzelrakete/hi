@@ -7,16 +7,16 @@ df_all = dataset()
 @test size(df_all) == (70_000, 2)
 
 # images
-@test typeof(to_image(df_all[:image][1])) <: Image
-@test typeof(to_png(df_all[:image][1])) == Vector{UInt8}
+@test isa(to_image(df_all[:image][1]), Image)
+@test isa(to_png(df_all[:image][1]), Vector{UInt8})
 
 # image composition
 svg, ctx = grid([to_png(img) for img in df_all[:image][1:10]])
-@test typeof(svg) == Compose.SVG
-@test typeof(ctx) == Compose.Context
+@test isa(svg, Compose.SVG)
+@test isa(ctx, Compose.Context)
 
 # learning
-model = train(LinearNoBias, sample_df(df_all, 1000))
+model = train(LinearTransform, sample_df(df_all, 1000))
 @test size(model.weights) == (28^2, 10)
 
 # evaluation
@@ -59,10 +59,23 @@ folds = RandomKFolds([[1, 2], [3, 4], [5, 6]], 3)
 # cvpredict
 df_sampled = sample_df(df_all, 100)
 folds = cv(RandomKFolds, df_sampled)
-Yp, models = cvpredict(LinearNoBias, folds, df_sampled)
+Yp, models = cvpredict(LinearTransform, folds, df_sampled)
 @test length(models) == 10
 @test size(Yp) == (100, 4)
 @test by(Yp, :fold, nrow)[:x1] == ones(Int, 10) * 10
 
 # utils
 @test bound([-1.0, 257.0, 12.0]) == [0.0, 256.0, 12.0]
+
+# models: LinearTransform
+df = DataFrame(image = [[1.0, 0.0], [0, 1]], label = [1; 2])
+model = LinearTransform([2 1; 2 1])
+@test likelihood(model, [1.0, 0.0]) == [2.0 1.0]
+@test train(LinearTransform, df; n_pixels = 2, n_classes = 2).weights == eye(2, 2)
+@test prediction(model, df) == DataFrame(image = [[1.0, 0.0], [0.0, 1.0]], label = [1, 2], prediction = [0, 0])
+
+# models: MultiLogReg
+df = DataFrame(image = [[1.0, 0.0], [0.0, 1.0]], label = [1; 2])
+model = BinaryLogReg([2, 1], 1)
+@test isa(likelihood(model, [1.0, 0.0]), Vector{Float64})
+@test prediction(model, df) == DataFrame(image = [[1.0, 0.0], [0.0, 1.0]], label = [1, 2], prediction = [0, 0])

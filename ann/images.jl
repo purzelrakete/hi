@@ -1,28 +1,25 @@
 using Images
 using Compose
 
-# convert a datframe image entry to an image object
-function to_image(pixels::Vector{Float64}; height::Int = 28)::Image
-  convert(Image{Images.Gray{Images.U8}}, reshape(pixels, height, height)' / 256)
-end
+# a single mnist image
+typealias MnistImage Image{Images.Gray{Images.U8}}
 
-# rescale to l2 unit. make sure we have valid pixels.
-function normalize_pixels(pixels::Vector{Float64})
-  bound(round(normalize(pixels)))
+# convert a dataframe image entry to an image object
+function to_image(pixels::Pixels; height::Int = 28)::Image
+  convert(MnistImage, reshape(pixels, height, height)' / 256)
 end
 
 # convert an image to png data. save and read, because reasons.
 function to_png(image::Image)
-  img = convert(Image{Images.Gray{Images.U8}}, image)
+  img = convert(MnistImage, image)
   filename = "$( tempname() ).png"
   save(filename, img)
   read(open(filename))
 end
 
-# straight from pixels
-function to_png(pixels::Vector{Float64})
-  to_png(to_image(pixels))
-end
+# rescale to l2 unit. make sure we have valid pixels.
+normalize_pixels(pixels::Pixels) = bound(round(normalize(pixels)))
+to_png(pixels::Pixels) = to_png(to_image(pixels))
 
 # compose a bunch of pngs images into a grid
 function grid(images; n_cols::Integer = 30, img_width = 13mm)
