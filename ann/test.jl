@@ -76,6 +76,7 @@ model = LinearTransform([2 1; 2 1])
 
 # models: MultiLogReg
 df = DataFrame(image = [[1.0, 0.0], [0.0, 1.0]], label = [1; 2])
-model = BinaryLogReg([2, 1], 1)
+model = BinaryLogReg([2, 1])
 @test isa(likelihood(model, [1.0, 0.0]), Vector{Float64})
 @test prediction(model, df) == DataFrame(image = [[1.0, 0.0], [0.0, 1.0]], label = [1, 2], prediction = [0, 0])
+@test round(nll(model, df), 3) == [-0.56]

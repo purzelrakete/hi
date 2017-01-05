@@ -16,10 +16,10 @@ end
 # logistic regression
 type BinaryLogReg <: Model
   z::Vector{Float64}
-  bias::Float64
 end
 
-likelihood(model::BinaryLogReg, x::Pixels) = sigmoid(x' * model.z + model.bias)
+likelihood(model::BinaryLogReg, x::Pixels) = sigmoid(x' * model.z)
+nll(model::BinaryLogReg, x::Pixels, y::Int) = -y * (x' * model.z) + log(1 + exp(x' * model.z))
 
 # train a model
 function train(::Type{BinaryLogReg}, df::DataFrame)::Model
