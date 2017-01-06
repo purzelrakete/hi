@@ -15,13 +15,12 @@ end
 
 # logistic regression
 type BinaryLogReg <: Model
-  z::Vector{Float64}
+  z::Matrix{Float64}
 end
 
 likelihood(model::BinaryLogReg, x::Pixels) = sigmoid(x' * model.z)
 nll(model::BinaryLogReg, x::Pixels, y::Int) = -y * (x' * model.z) + log(1 + exp(x' * model.z))
+gradient(model::BinaryLogReg, x::Pixels, y::Int, j::Int) = ((x[j] * exp(x' * model.z)) ./ (1 + exp(x' * model.z))) - y * x[j]
 
 # train a model
-function train(::Type{BinaryLogReg}, df::DataFrame)::Model
-  "NO"
-end
+train(::Type{BinaryLogReg}, df::DataFrame)::Model = error("not implemented")
