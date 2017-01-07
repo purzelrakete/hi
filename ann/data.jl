@@ -1,20 +1,10 @@
 using MNIST
 using DataFrames
 
-# merge test and train data ready for CV splitting.
-function dataset()
-  [df_train(); df_test()]
-end
-
-# mnist training data, 60_000 images.
-function df_train()
-  df_load(traindata()...)
-end
-
-# mnist test data, 10_000 images.
-function df_test()
-  df_load(testdata()...)
-end
+# load mnist
+dataset() = [df_train(); df_test()]
+df_train() = df_load(traindata()...)
+df_test() = df_load(testdata()...)
 
 # convert mnist data to dataframe
 function df_load(xs, ys)
@@ -25,3 +15,7 @@ function df_load(xs, ys)
     image = [xst[x, :] for x in 1:rows],
     label = map(Integer, vec(yst)))
 end
+
+ndims(df::DataFrame) = length(df[:image][1])
+nclasses(df::DataFrame) = length(classes(df))
+classes(df::DataFrame) = unique(df[:label])

@@ -21,11 +21,11 @@ Base.done(cv::RandomKFolds, k) = k - 1 == cv.n_folds
 
 # train on a data partitioning scheme. do prediction on the held out sets and
 # returns a single dataframe containing the fold id that each instance was in.
-function cvpredict{T <: Model}(kind::Type{T}, folds::Partitioner, df::DataFrame)
+function cvpredict{T <: Model}(kind::Type{T}, folds::Partitioner, opt::Optimizer, df::DataFrame)
   Yp = DataFrame()
   models = []
   for (k, idx_test, idx_train) in folds
-      model = train(kind, df[idx_train, :])
+      model, stats = train(kind, opt, df[idx_train, :])
       predictions = prediction(model, df[idx_test, :])
       predictions[:fold] = k
 

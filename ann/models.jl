@@ -1,26 +1,49 @@
 using DataFrames
 
+# Linear Transform
+# ----------------
+#
 # x'W
+#
 immutable LinearTransform <: Model
   weights::Matrix{Float64}
 end
 
+# attributes
+ndims(model::LinearTransform) = size(model.weights)[1]
+nclasses(model::LinearTransform) = size(model.weights)[2]
+
+# fitting
 likelihood(model::LinearTransform, x::Pixels) = normalize(x)' * model.weights
 
-# optimize objective
-function train(::Type{LinearTransform}, df::DataFrame; n_pixels = 784, n_classes = 10)::Model
+# fit
+function train(::Type{LinearTransform}, opt::Optimizer, df::DataFrame)
   means = by(df, :label, sdf -> mean(normalize(sdf[:image])))[:x1]
-  LinearTransform(reshape(means, n_pixels, n_classes))
+  model = LinearTransform(reshape(means, ndims(df), nclasses(df)))
+  model, DataFrame() # return empty stats
 end
 
-# logistic regression
+# Logistic Regression
+# -------------------
+#
+# sigmoid(x'W)
+#
 type BinaryLogReg <: Model
   z::Matrix{Float64}
 end
 
+# attributes
+ndims(model::BinaryLogReg) = size(model.z)[1]
+nclasses(model::BinaryLogReg) = size(model.z)[2]
+
+# fitting
 likelihood(model::BinaryLogReg, x::Pixels) = sigmoid(x' * model.z)
 nll(model::BinaryLogReg, x::Pixels, y::Int) = -y * (x' * model.z) + log(1 + exp(x' * model.z))
 gradient(model::BinaryLogReg, x::Pixels, y::Int, j::Int) = ((x[j] * exp(x' * model.z)) ./ (1 + exp(x' * model.z))) - y * x[j]
 
-# train a model
-train(::Type{BinaryLogReg}, df::DataFrame)::Model = error("not implemented")
+# fit
+function train(::Type{BinaryLogReg}, opt::Optimizer, df::DataFrame)
+  model = BinaryLogReg(rand(ndims(df), nclasses(df)))
+  stats = optimize(opt, model, df)
+  model, convert(DataFrame, reduce(hcat, stats)')
+end
