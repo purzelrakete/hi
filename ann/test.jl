@@ -10,7 +10,7 @@ df_all = dataset()
 # -------
 #
 @testset "Dataset" begin
-  @test size(df_all) == (70_000, 2)
+  @test size(df_all) == (70_000, 3)
   @test ndims(df_all) == 28^2
   @test nclasses(df_all) == 10
 end
@@ -37,8 +37,8 @@ end
   @test size(model.weights) == (28^2, 10)
 
   # evaluation
-  df = DataFrame(label = [0, 1, 2, 1, 3], prediction = [0, 3, 2, 3, 1])
-  @test confusions(df) == DataFrame(label = [1, 3], prediction = [3, 1], x1 = [2, 1])
+  df = DataFrame(y = [0, 1, 2, 1, 3], prediction = [0, 3, 2, 3, 1])
+  @test confusions(df) == DataFrame(y = [1, 3], prediction = [3, 1], x1 = [2, 1])
   @test confusion_matrix(df; n_classes = 4) == convert(DataFrame, [1 0 0 0; 0 0 0 2; 0 0 1 0; 0 1 0 0])
   @test evaluation(df; classes = [0:3;]) == DataFrame(
     class     = [0:3;],
@@ -83,13 +83,15 @@ end
 #
 @testset "Utils" begin
   @test bound([-1.0, 257.0, 12.0]) == [0.0, 256.0, 12.0]
+  @test mean(znormalize([1.0 1.0 0.0; -1.0 -1.0 0.0]), 1) == [0.0 0.0 0.0]
+  @test std(znormalize([1.0 1.0 0.0; -1.0 -1.0 0.0]), 1) ≈ [1.0 1.0 0.0]
 end
 
 # LinearTransform
 # ---------------
 #
 @testset "Linear Transform" begin
-  df = DataFrame(image = [[1.0, 0.0], [0, 1]], label = [1; 2])
+  df = DataFrame(x = [[1.0, 0.0], [0, 1]], y = [1; 2])
   model = LinearTransform([2 1; 2 1])
 
   @test ndims(model) == 2
@@ -105,7 +107,7 @@ end
   Yp, models = cvpredict(LinearTransform, folds, NoopOpt(), df_sampled)
 
   @test length(models) == 10
-  @test size(Yp) == (100, 4)
+  @test size(Yp) == (100, 5)
   @test by(Yp, :fold, nrow)[:x1] == ones(Int, 10) * 10
 end
 
@@ -113,7 +115,7 @@ end
 # ------------
 #
 @testset "Binary Logistic Regression" begin
-  df = DataFrame(image = [[1.0, 0.0], [0.0, 1.0]], label = [1; 2])
+  df = DataFrame(x = [[1.0, 0.0], [0.0, 1.0]], y = [1; 2])
   model = BinaryLogReg([1 0; 0 1])
   opt = BatchGradientDescent(0.03, 1)
 
@@ -133,6 +135,6 @@ end
   Yp, models = cvpredict(BinaryLogReg, folds, opt, df_sampled)
 
   @test length(models) == 10
-  @test size(Yp) == (10, 4)
+  @test size(Yp) == (10, 5)
   @test by(Yp, :fold, nrow)[:x1] == ones(Int, 10)
 end

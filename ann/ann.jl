@@ -5,11 +5,11 @@ abstract Optimizer
 
 # a parametric model
 abstract Model
-likelihood(model::Model, df::DataFrame) = [likelihood(model, x) for x in df[:image]]
+likelihood(model::Model, df::DataFrame) = [likelihood(model, x) for x in df[:x]]
 prediction(model::Model, df::DataFrame) = [df DataFrame(prediction = indmax.(likelihood(model, df)) - 1)]
-nll(model::Model, df::DataFrame) = sum([nll(model, r[:image], r[:label]) for r in eachrow(df)])
-gradient(model::Model, df::DataFrame, j::Int) = sum([gradient(model, r[:image], r[:label], j) for r in eachrow(df)])
-gradient(model::Model, df::DataFrame, j::Int, class::Int) = sum([gradient(model, r[:image], map(signed, r[:label] .== class), j) for r in eachrow(df)])
+nll(model::Model, df::DataFrame) = sum([nll(model, r[:x], r[:y]) for r in eachrow(df)])
+gradient(model::Model, df::DataFrame, j::Int) = sum([gradient(model, r[:x], r[:y], j) for r in eachrow(df)])
+gradient(model::Model, df::DataFrame, j::Int, class::Int) = sum([gradient(model, r[:x], map(signed, r[:y] .== class), j) for r in eachrow(df)])
 
 # type for the list of all pixels in an image
 typealias Pixels Vector{Float64}

@@ -24,16 +24,18 @@ Base.done(cv::RandomKFolds, k) = k - 1 == cv.n_folds
 function cvpredict{T <: Model}(kind::Type{T}, folds::Partitioner, opt::Optimizer, df::DataFrame)
   Yp = DataFrame()
   models = []
+  stats = []
   for (k, idx_test, idx_train) in folds
-      model, stats = train(kind, opt, df[idx_train, :])
+      model, stat = train(kind, opt, df[idx_train, :])
       predictions = prediction(model, df[idx_test, :])
       predictions[:fold] = k
 
       Yp = [Yp; predictions]
       models = [models; model]
+      stats = [stats; stat]
   end
 
-  Yp, models
+  Yp, models, stats
 end
 
 # split into test and train set indices for fold k

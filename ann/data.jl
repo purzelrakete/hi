@@ -9,13 +9,17 @@ df_test() = df_load(testdata()...)
 # convert mnist data to dataframe
 function df_load(xs, ys)
   xst, yst = xs', ys'
+  normed = znormalize(xst)
   rows, _ = size(xst)
+  images =
 
   DataFrame(
     image = [xst[x, :] for x in 1:rows],
-    label = map(Integer, vec(yst)))
+    x = [normed[x, :] for x in 1:rows],
+    y = map(Integer, vec(yst)))
 end
 
-ndims(df::DataFrame) = length(df[:image][1])
+# accessors
+ndims(df::DataFrame) = length(df[:x][1])
 nclasses(df::DataFrame) = length(classes(df))
-classes(df::DataFrame) = unique(df[:label])
+classes(df::DataFrame) = unique(df[:y])

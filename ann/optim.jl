@@ -22,7 +22,7 @@ function gradient_update(model::Model, df::DataFrame, α::Float64 = 0.03)
   for j in 1:ndims(model)
     δ = α * gradient(model, df, j, 0)
 
-    # FIXME(rk): this only works with the lr model.
+    # FIXME(rk): this only works with the logreg model.
     model.z[j, :] += δ'
   end
 end

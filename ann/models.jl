@@ -18,7 +18,7 @@ likelihood(model::LinearTransform, x::Pixels) = normalize(x)' * model.weights
 
 # fit
 function train(::Type{LinearTransform}, opt::Optimizer, df::DataFrame)
-  means = by(df, :label, sdf -> mean(normalize(sdf[:image])))[:x1]
+  means = by(df, :y, sdf -> mean(normalize(sdf[:x])))[:x1]
   model = LinearTransform(reshape(means, ndims(df), nclasses(df)))
   model, DataFrame() # return empty stats
 end
@@ -39,7 +39,7 @@ nclasses(model::BinaryLogReg) = size(model.z)[2]
 # fitting
 likelihood(model::BinaryLogReg, x::Pixels) = sigmoid(x' * model.z)
 nll(model::BinaryLogReg, x::Pixels, y::Int) = -y * (x' * model.z) + log(1 + exp(x' * model.z))
-gradient(model::BinaryLogReg, x::Pixels, y::Int, j::Int) = ((x[j] * exp(x' * model.z)) ./ (1 + exp(x' * model.z))) - y * x[j]
+gradient(model::BinaryLogReg, x::Pixels, y::Int, j::Int) = x[j] * sigmoid(x' * model.z) - (y * x[j])
 
 # fit
 function train(::Type{BinaryLogReg}, opt::Optimizer, df::DataFrame)

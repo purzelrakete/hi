@@ -12,5 +12,11 @@ end
 # sample rows from a dataframe
 sample_df(df::DataFrame, size::Int = 1) = df[sample(1:nrow(df), size), :]
 
-# maths
+# multi dimensional sigmoid. ignores numerical issues. see scratch notebook.
 sigmoid(x) = 1 ./ (1 + exp(-x))
+
+# zscore the row vectors along the given dimension. 0 std elements have a zscore of 0.0.
+znormalize(X::Matrix{Float64}; dim::Int = 1) = fillna(0.0, zscore(X, dim))
+
+# fill NaN values with given val
+fillna(val, X) = map(x -> isnan(x) ? val : x, X)

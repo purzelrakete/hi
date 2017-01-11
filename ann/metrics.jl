@@ -16,23 +16,23 @@ metric_precision(df::DataFrame, class) = round(tp(df, class) / (1.0 * tp(df, cla
 metric_recall(df::DataFrame, class)    = round(tp(df, class) / (1.0 * tp(df, class) + fn(df, class)), 3)
 
 # binary confusions
-tp(df::DataFrame, class) = countnz((df[:label] .== class) & (df[:prediction] .== class))
-fn(df::DataFrame, class) = countnz((df[:label] .== class) & (df[:prediction] .!= class))
-fp(df::DataFrame, class) = countnz((df[:label] .!= class) & (df[:prediction] .== class))
-tn(df::DataFrame, class) = countnz((df[:label] .!= class) & (df[:prediction] .!= class))
+tp(df::DataFrame, class) = countnz((df[:y] .== class) & (df[:prediction] .== class))
+fn(df::DataFrame, class) = countnz((df[:y] .== class) & (df[:prediction] .!= class))
+fp(df::DataFrame, class) = countnz((df[:y] .!= class) & (df[:prediction] .== class))
+tn(df::DataFrame, class) = countnz((df[:y] .!= class) & (df[:prediction] .!= class))
 
-# top confusions in a dataframe containing :label and :prediction
+# top confusions in a dataframe containing :y and :prediction
 function confusions(df::DataFrame)
-  filtered = df[df[:label] .!= df[:prediction], [:label, :prediction]]
-  aggregated = by(filtered, [:label, :prediction], nrow)
+  filtered = df[df[:y] .!= df[:prediction], [:y, :prediction]]
+  aggregated = by(filtered, [:y, :prediction], nrow)
   sort(aggregated, cols = order(:x1, rev = true))
 end
 
-# full confusion matrix from dataframe containing :label and :prediction
+# full confusion matrix from dataframe containing :y and :prediction
 function confusion_matrix(df::DataFrame; n_classes::Int = 10)
   confusion = zeros(Int64, n_classes, n_classes)
-  for row in eachrow(by(df, [:label, :prediction], nrow))
-      i, j, val = row[:label] + 1, row[:prediction] + 1, row[:x1]
+  for row in eachrow(by(df, [:y, :prediction], nrow))
+      i, j, val = row[:y] + 1, row[:prediction] + 1, row[:x1]
       confusion[i, j] = val
   end
 
