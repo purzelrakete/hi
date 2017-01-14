@@ -15,6 +15,32 @@ df_all = dataset()
   @test nclasses(df_all) == 10
 end
 
+# Feature transforms
+# ------------------
+#
+@testset "Features" begin
+
+  # binarize labels
+  df = DataFrame(y = [0, 1])
+  t = transform(BinarizeLabels, df)
+  @test t.mapping == Dict(1 => 0, 2 => 1)
+  @test reduce(hcat, df[:y]) == eye(2, 2)
+
+  # z normalize
+  df = DataFrame(x = [[1.0, 2.0], [3.0, 4.0]])
+  t = transform(ZNormalize, df)
+  @test t.μs == [2.0; 3.0]
+  @test round(t.σs, 1) == [1.4; 1.4]
+  @test mean(reduce(hcat, df[:x])', 1)  == [0.0 0.0]
+  @test std(reduce(hcat, df[:x])', 1) ≈ [1.0 1.0]
+
+  # multiple transforms
+  df = DataFrame(x = [[1.0, 1.0], [1.0, 1.0]], y = [1, 2])
+  transform([BinarizeLabels, ZNormalize], df)
+  df[:y] == eye(2, 2)
+  df[:x] == [0.0; 0.0]
+end
+
 # Images
 # -------
 #

@@ -17,6 +17,7 @@ typealias Pixels Vector{Float64}
 # includes
 include("cv.jl")
 include("data.jl")
+include("features.jl")
 include("images.jl")
 include("metrics.jl")
 include("models.jl")

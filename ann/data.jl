@@ -9,13 +9,12 @@ df_test() = df_load(testdata()...)
 # convert mnist data to dataframe
 function df_load(xs, ys)
   xst, yst = xs', ys'
-  normed = znormalize(xst)
   rows, _ = size(xst)
-  images =
+  images = [xst[x, :] for x in 1:rows]
 
   DataFrame(
-    image = [xst[x, :] for x in 1:rows],
-    x = [normed[x, :] for x in 1:rows],
+    image = images,
+    x = images,
     y = map(Integer, vec(yst)))
 end
 
