@@ -153,7 +153,7 @@ end
   @test size(train(BinaryLogReg, opt, df)[1].z) == (2, 2)
   @test size(train(BinaryLogReg, opt, df)[2]) == (1, 3)
   @test prediction(model, df) == [df DataFrame(prediction = [0, 1])]
-  @test size(gradient(model, df, 1, 0)) == (1, 2)
+  @test size(gradient(model, df)) == (2, 2)
 
   # cvpredict
   df_sampled = sample_df(df_all, 10)

@@ -12,17 +12,7 @@ end
 # full gradient descent, until max_iterations has been reached.
 function optimize(opt::BatchGradientDescent, model::Model, df::DataFrame)
   map(1:opt.max_iterations) do i
-    gradient_update(model, df, opt.α)
+    model.z += opt.α * gradient(model, df)
     [i, nll(model, df)...]
-  end
-end
-
-# update the current best solution by a single step of gradient descent.
-function gradient_update(model::Model, df::DataFrame, α::Float64 = 0.03)
-  for j in 1:ndims(model)
-    δ = α * gradient(model, df, j, 0)
-
-    # FIXME(rk): this only works with the logreg model.
-    model.z[j, :] += δ'
   end
 end

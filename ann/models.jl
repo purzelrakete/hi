@@ -39,7 +39,7 @@ nclasses(model::BinaryLogReg) = size(model.z)[2]
 # fitting
 likelihood(model::BinaryLogReg, x::Pixels) = sigmoid(x' * model.z)
 nll(model::BinaryLogReg, x::Pixels, y::Int) = -y * (x' * model.z) + log(1 + exp(x' * model.z))
-gradient(model::BinaryLogReg, x::Pixels, y::Int, j::Int) = x[j] * sigmoid(x' * model.z) - (y * x[j])
+gradient(model::BinaryLogReg, x::Pixels, y::Int) = x .* (sigmoid(x' * model.z) - y')
 
 # fit
 function train(::Type{BinaryLogReg}, opt::Optimizer, df::DataFrame)
