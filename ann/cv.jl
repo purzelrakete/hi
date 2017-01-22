@@ -23,12 +23,13 @@ Base.done(cv::RandomKFolds, k) = k - 1 == cv.n_folds
 # returns a single dataframe containing the fold id that each instance was in.
 function cvpredict{T <: Model}(kind::Type{T}, folds::Partitioner, opt::Optimizer, df::DataFrame)
   Yp = DataFrame()
+  stats = DataFrame()
   models = []
-  stats = []
   for (k, idx_test, idx_train) in folds
       model, stat = train(kind, opt, df[idx_train, :])
       predictions = prediction(model, df[idx_test, :])
       predictions[:fold] = k
+      stat[:fold] = k
 
       Yp = [Yp; predictions]
       models = [models; model]

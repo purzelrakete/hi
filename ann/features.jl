@@ -10,7 +10,7 @@ transform(ts::Vector{DataType}, df::DataFrame) = [transform(t, df) for t in ts]
 untransform(ts::Vector{Transform}, df::DataFrame) = [untransform(t, df) for t in ts]
 
 type BinarizeLabels <: Transform
-  mapping::Dict{Int,Int}
+  mapping::Dict{Int,Int} # 1 based column index to class label
 end
 
 # one hot encode the labels in :y. stores mapping of index to class.
@@ -28,6 +28,13 @@ function transform(::Type{BinarizeLabels}, df::DataFrame)
   df[:y] = [binarized[x, :] for x in 1:nrows]
 
   BinarizeLabels(fwd)
+end
+
+# reverse label binarization
+function untransform(t::BinarizeLabels, df::DataFrame)
+    is, js, _ = findnz(reduce(hcat, df[:y])')
+    indices = sort(collect(zip(is, js)))
+    df[:y] = [t.mapping[x[2]] for x in indices]
 end
 
 type ZNormalize <: Transform

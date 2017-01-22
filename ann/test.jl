@@ -21,10 +21,19 @@ end
 @testset "Features" begin
 
   # binarize labels
-  df = DataFrame(y = [0, 1])
+  labels = [0, 1, 4, 1]
+  df = DataFrame(y = labels)
   t = transform(BinarizeLabels, df)
-  @test t.mapping == Dict(1 => 0, 2 => 1)
-  @test reduce(hcat, df[:y]) == eye(2, 2)
+  @test t.mapping == Dict(1 => 0, 2 => 1, 3 => 4)
+  @test reduce(hcat, df[:y])' == [
+    1 0 0;
+    0 1 0;
+    0 0 1;
+    0 1 0]
+
+  # reverse the transform
+  untransform(t, df)
+  @test df[:y] == labels
 
   # z normalize
   df = DataFrame(x = [[1.0, 2.0], [3.0, 4.0]])
@@ -163,4 +172,35 @@ end
   @test length(models) == 10
   @test size(Yp) == (10, 5)
   @test by(Yp, :fold, nrow)[:x1] == ones(Int, 10)
+end
+
+@testset "One vs All Binary Logistic Regression" begin
+  df = sample_df(df_all, 100)
+  model = BinaryLogReg([1 0; 0 1])
+  opt = BatchGradientDescent(0.03, 10)
+  _, bt = transform([ZNormalize, BinarizeLabels], df)
+  folds = cv(RandomKFolds, df)
+
+  # cvpredict
+  Yp, models, stats = cvpredict(BinaryLogReg, folds, opt, df)
+  untransform(bt, Yp)
+
+  @test length(models) == 10
+  @test size(Yp) == (100, 5)
+  @test by(Yp, :fold, nrow)[:x1] == ones(Int, 10) * 10
+end
+
+@testset "One vs All Binary Logistic Regression" begin
+  df = sample_df(df_all, 100)
+  opt = BatchGradientDescent(0.003, 10)
+  _, bt = transform([ZNormalize, BinarizeLabels], df)
+  folds = cv(RandomKFolds, df)
+
+  # cvpredict
+  Yp, models, stats = cvpredict(BinaryLogReg, folds, opt, df)
+  untransform(bt, Yp)
+
+  @test length(models) == 10
+  @test size(Yp) == (100, 5)
+  @test by(Yp, :fold, nrow)[:x1] == ones(Int, 10) * 10
 end
