@@ -5,9 +5,13 @@ module Lib
     , Tx
     ) where
 
+import Crypto.Hash as H
+import Crypto.Hash.Algorithms
+import Data.ByteString.Char8 (pack)
+
 -- main
 start :: IO ()
-start = putStrLn "hello"
+start = Prelude.putStrLn "hello"
 
 -- accounts
 type Account = String
@@ -27,7 +31,10 @@ data Block t = Genesis | Block
   } deriving (Show, Eq)
 
 mine :: Block t -> t -> Block t
-mine Genesis content = Block 1 0 content "HASH" Genesis
+mine Genesis content = Block 1 0 content (hashStr "GENESIS") Genesis
+
+hashStr :: String -> Hash
+hashStr x = show (H.hash (pack x) :: Digest SHA256)
 
 -- ledger
 data Tx = Tx
