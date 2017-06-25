@@ -1,6 +1,5 @@
 module Lib
-    ( start
-    , mine
+    ( mine
     , Block(Genesis, Block)
     , Tx
     ) where
@@ -8,10 +7,6 @@ module Lib
 import Crypto.Hash as H
 import Crypto.Hash.Algorithms
 import Data.ByteString.Char8 (pack)
-
--- main
-start :: IO ()
-start = Prelude.putStrLn "hello"
 
 -- accounts
 type Account = String
