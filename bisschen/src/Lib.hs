@@ -1,7 +1,7 @@
 module Lib
     ( start
     , mine
-    , Block(Genesis)
+    , Block(Genesis, Block)
     , Tx
     ) where
 
@@ -26,8 +26,8 @@ data Block t = Genesis | Block
   , previous :: Block t
   } deriving (Show, Eq)
 
-mine :: Block t -> Block t
-mine Genesis = Genesis
+mine :: Block t -> t -> Block t
+mine Genesis content = Block 1 0 content "HASH" Genesis
 
 -- ledger
 data Tx = Tx
