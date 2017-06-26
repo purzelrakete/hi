@@ -8,7 +8,7 @@ license-file:        LICENSE
 author:              Rany Keddo
 maintainer:          example@example.com
 copyright:           2017 Rany Keddo
-category:            Web
+category:            Cryptocurrency
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
@@ -17,9 +17,17 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lib
   build-depends:       base >= 4.7 && < 5
-                     , cryptonite
+                     , byteable
                      , bytestring
+                     , cryptonite
+                     , memory
   default-language:    Haskell2010
+  ghc-options:
+    -fwarn-tabs
+    -fwarn-unused-imports
+    -fwarn-missing-signatures
+    -fwarn-name-shadowing
+    -fwarn-incomplete-patterns
 
 executable bisschen
   hs-source-dirs:      app
@@ -37,6 +45,8 @@ test-suite bisschen-test
                      , bisschen
                      , tasty
                      , tasty-hunit
+                     , tasty-quickcheck
+                     , tasty-smallcheck
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
