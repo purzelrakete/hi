@@ -8,16 +8,14 @@ import numpy as np
 import logreg
 
 
-def model(n):
-    w, b = np.random.rand(n, 1), np.random.randn()
-    return logreg.Model(w, b)
-
-
-def data(m, n):
-    return np.random.rand(n, m)
-
-
 def test_prediction():
+    def model(n):
+        w, b = np.random.rand(n, 1), np.random.randn()
+        return logreg.Model(w, b)
+
+    def data(m, n):
+        return np.random.rand(n, m)
+
     m, n = 1, 2
     for _ in xrange(1000):
         Y, p = model(n).predict(data(m, n))
@@ -28,10 +26,9 @@ def test_prediction():
 
 
 def test_training():
-    m, n = 1, 2
-    X = data(m, n)
-    y = np.random.randint(0, 1)
-    model = logreg.train(X, y)
-    classes, _ = model.predict(X)
+    def data(m, n):
+        return np.random.rand(n, m)
 
-    assert True
+    m, n = 2, 3
+    X, y = np.random.rand(n, m), np.random.rand(n, 1)
+    model = logreg.train(X, y)
