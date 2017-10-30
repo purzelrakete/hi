@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Logistic regression in numpy.
 
@@ -5,28 +7,41 @@ Logistic regression in numpy.
 
 import numpy as np
 
+import util
 
-def train(X, Y):
+
+def train(X, Y, iterations = 1000, learning_rate = 0.001, momentum = 0.9):
     "train and return a model"
 
     n, m = X.shape
 
-    def optimize(iterations = 1000, learning_rate = 0.001):
+    def optimize():
+
+        # W ∈ Rn, b ∈ R1
         W, b = np.zeros((n, 1)), 0
+        losses = []
 
         for i in xrange(iterations):
-            dW = 0
-            db = 0
+
+            # activations
+            A = util.sigmoid(np.dot(W.T, X) + b)
+
+            # dJ/dW ∈ Rn
+            dW = np.dot(X, (A - Y).T) / m
+
+            # dJ/db ∈ R1
+            db = np.sum(A - Y) / m
 
             W = W - learning_rate * dW
             b = b - learning_rate * db
 
-        return Model(W, b)
+            losses.append(Model(W, b).nll(X, Y))
 
-    model = optimize()
-    loss = model.nll(X, Y)
+        return Model(W, b), losses
 
-    return model
+    model, losses = optimize()
+
+    return model, losses
 
 
 class Model(object):
@@ -37,30 +52,39 @@ class Model(object):
         self.b = b
 
     def predict(self, X, threshold = 0.5):
-        A = sigmoid(np.dot(self.W.T, X) + self.b)
-        classes = [1 if p > threshold else 0 for p in A]
+        n, m = X.shape
+        A = util.sigmoid(np.dot(self.W.T, X) + self.b)
+
+        assert A.shape == (1, m)
+        classes = np.where(A > 0.5, 1, 0)
 
         return classes, A
 
     def boundary(self, x):
-        "Decision boundary in the R2 case."
+        "Decision boundary in the R2 case. This is orthogonal to W."
 
-        assert self.W.shape[0] == 2
-        return self.b + self.W[0] * x / self.W[1]
+        assert self.W.shape == (2, 1)
+        return (-1.0 * self.W[0] * x - self.b) / self.W[1]
 
     def nll(self, X, Y):
         "Negative Log Likelihood of given X, Y under this model"
 
         n, m = X.shape
-        A = sigmoid(np.dot(self.W.T, X) + self.b)
-        logprobs = np.log(A**Y) * (1-A)**np.log(1-Y)
+        A = util.sigmoid(np.dot(self.W.T, X) + self.b)
 
-        return -sum(logprobs) / m
+        # A invariants
+        assert A.shape == (1, m)
+        assert np.sum(A >= 0) == m
+        assert np.sum(A <= 1) == m
 
+        # Y invariants
+        assert Y.shape == (1, m)
+        assert np.sum(Y == 1) + np.sum(Y == 0) == m
 
-#
-# Maths
-#
+        logprobs = Y * np.log(A) + (1 - Y) * np.log(1 - A)
 
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
+        # logprob invariants
+        assert logprobs.shape == (1, m)
+        assert np.sum(logprobs <= 0) == m
+
+        return np.squeeze(-np.sum(logprobs, axis = 1, keepdims = True) / m)

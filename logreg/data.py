@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Data helpers.
 
@@ -14,7 +16,7 @@ def gaussian_clusters(nclasses, m, n, bounds = 10):
     Ys = [np.repeat(cls, m) for cls in range(nclasses)]
     Y = np.hstack(tuple(Ys))
 
-    return X.T, Y
+    return X.T, Y.reshape((Y.shape[0], 1)).T
 
 
 def gaussian_cluster(m, n, bounds = 10):

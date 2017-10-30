@@ -29,6 +29,7 @@ def test_training():
     def data(m, n):
         return np.random.rand(n, m)
 
-    m, n = 2, 3
-    X, y = np.random.rand(n, m), np.random.rand(n, 1)
-    model = logreg.train(X, y)
+    m, n = 200, 10
+    X = np.random.rand(n, m)
+    Y = np.random.choice([0, 1], m).reshape((1, m))
+    model = logreg.train(X, Y)
