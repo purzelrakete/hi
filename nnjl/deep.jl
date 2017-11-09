@@ -14,8 +14,8 @@ X = [
 y = [1 1 0 0]
 
 # parameter search
-A = 0.5 - rand(3, 4)
-B = 0.5 - rand(1, 3)
+A = zeros(3, 4)
+B = zeros(1, 3)
 best_likelihood = 0.0
 
 for i = 0:10_000
