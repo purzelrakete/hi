@@ -33,9 +33,10 @@ y = zeros(Int, 1, m); [y[1, x+1] = 1 for x in [6, 9]] # diagonals in 6 and 9
   randn(1, 5) * sqrt(2 / 5), 0 ]
 
 losses = []
+grads = grad(loss, 3)
 for i = 0:10_000
   l = loss(X, y, θ)
-  g = grad(loss, 3)(X, y, θ)
+  g = grads(X, y, θ)
 
   for p in 1:length(θ)
     θ[p] = θ[p] - α * g[p]
@@ -47,5 +48,5 @@ for i = 0:10_000
   end
 end
 
-df = DataFrame(y = losses)
-plot(df, y = :y, Geom.line)
+df = DataFrame(likelihood = exp.(-losses))
+plot(df, y = :likelihood, Geom.line)
