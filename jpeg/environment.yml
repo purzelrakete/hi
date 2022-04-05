@@ -1,0 +1,10 @@
+name: hi-jpeg
+
+dependencies:
+  - python=3.8
+  - ipython
+  - matplotlib
+  - numpy
+  - ipykernel
+  - pip
+  - Pillow

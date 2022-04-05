@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Start notebook
+
+# activate environment
+eval "$(conda shell.bash hook)"
+conda activate hi-jpeg
+
+# start notebook
+jupyter notebook

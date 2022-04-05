@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Install JPEG
+
+set -eou pipefail
+
+# install
+conda env create --file environment.yml
+
+# activate
+eval "$(conda shell.bash hook)"
+conda activate hi-jpeg
+
+# install kernel
+python -m ipykernel install --user --name=hi-jpeg
