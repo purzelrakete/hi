@@ -19,9 +19,9 @@ type Words interface {
 
 // Hit is a similar term
 type Hit struct {
-	Term       string    `json:"term"`
-	Frequency  int       `json:"frequency"`
-	Similarity float32   `json:"similarity"`
+	Term       string  `json:"term"`
+	Frequency  int     `json:"frequency"`
+	Similarity float32 `json:"similarity"`
 }
 
 // New creates a dictionary given a word vector file.
@@ -136,13 +136,13 @@ func (d *dict) NNVector(termVector []float32, k, minFq int, θ float32) ([]Hit, 
 			fq  = d.frequencies[i]
 		)
 
- 		if fq < minFq {
- 			continue
- 		}
- 
- 		if reflect.DeepEqual(v, termVector) {
- 			continue
- 		}
+		if fq < minFq {
+			continue
+		}
+
+		if reflect.DeepEqual(v, termVector) {
+			continue
+		}
 
 		similarity, err := cosine(termVector, v)
 		if err != nil {
